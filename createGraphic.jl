@@ -5,12 +5,12 @@ availableColors = ["red","blue", "green", "brown", "purple"]
 
 # параметры указывают, какие файлы попадают в выборку
 dim = "100"
-mantissa = "100"
+mantissa = "500"
 rep = "*"
 
 # Название графика в легенде
 #label = string("dim=", dim, " mantissa=", mantissa, " rep=", rep)
-label = string("dim=", dim, " mantissa=", mantissa)
+label = string("With shift: dim=", dim, " mantissa=", mantissa)
 color = rand(availableColors)
 dirName = "resultJacobiRotationWithShiftTests"
 createResultsBatPath = string(pwd(), "\\", "createResults.bat")

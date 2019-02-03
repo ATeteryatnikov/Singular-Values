@@ -7,17 +7,17 @@ include("src/Matrices.jl")
 using GenericSVD
 using DelimitedFiles
 # размерность СЛАУ Годунова
-startDim = 100
-stepDim = 100
-endDim = 100
+startDim = 300
+stepDim = 300
+endDim = 300
 # величина мантиссы BigFloat
 startMantissa = 100
-stepMantissa = 400
-endMantissa = 500
+stepMantissa = 100
+endMantissa = 100
 # Кол-во итераций в алгоритме
-startNumIterations = 12000
+startNumIterations = 20000
 stepNumIterations = 1000
-endNumIterations = 25000
+endNumIterations = 20000
 # Директория с результатами теста
 resultFolderName = ""
 # в алгоритме в диагонали bettas ищется первый элемент болше чем maxBettasLimit с которого начинается итерация алгоритма
@@ -27,7 +27,7 @@ maxBettasLimit = 1e-40
 # Если не указан resultFolderName, то директория будет называться "resultJacobiRotationTests"
 if (resultFolderName=="")
 	# resultFolderName = "resultJacobiRotationTests"
-	resultFolderName = "resultJacobiRotationWithShiftTests"
+	resultFolderName = "resultJacobiRotationWithoutShiftTests"
 end
 # Создаем директорию в каталоге с программой с названием resultFolderName
 try
@@ -49,9 +49,9 @@ for n in startDim:stepDim:endDim
 			fullMatr = toDense(alphas, bettas)
 			
 			# JacobiRotation возвращает два массива (диагонали) и количество выполненых итераций [alphas, bettas, k]
-			#JRRes, timerJR = @timed JacobiRotation(copy(alphas), copy(bettas), numRepeated)
+			JRRes, timerJR = @timed JacobiRotation(copy(alphas), copy(bettas), numRepeated)
 			#JRRes, timerJR = @timed JacobiRotationModification(copy(alphas), copy(bettas), numRepeated, maxBettasLimit)
-			JRRes, timerJR = @timed JacobiRotationWithShift(copy(alphas), copy(bettas), numRepeated, maxBettasLimit)
+			#JRRes, timerJR = @timed JacobiRotationWithShift(copy(alphas), copy(bettas), numRepeated, maxBettasLimit)
 			
 			originVals, denseTimer = @timed svdvals(fullMatr)
 			

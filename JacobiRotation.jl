@@ -82,8 +82,8 @@ function JacobiRotationWithShift(newAlphas, newBettas, numRepeat)
     k=0
     firstElement = 1
     for numRep in 1:1:numRepeat
-
-        shiftWilkinson = WilkinsonShift(newAlphas[firstElement],newAlphas[s],newBettas[s], numRep)
+       
+        shiftWilkinson = WilkinsonShift(newAlphas[firstElement],newAlphas[firstElement+1],newBettas[firstElement+1], numRep)
     # значения cos и sin для матрицы Гивенса (1,2).
         (cos0, sin0) = getGivensCS(newAlphas[firstElement] - shiftWilkinson, newBettas[firstElement])
     # после умножения трехдиагональной матрицы слева и справа на транспонированую матрицу Гивенса
@@ -143,3 +143,28 @@ function JacobiRotationWithShift(newAlphas, newBettas, numRepeat)
     return [newAlphas, newBettas, k]
 end
 
+include("src/Matrices.jl")
+include("Lanczos.jl")
+n = 200
+mantissa = 100
+numRepeated = 12000
+maxBettasLimit = 1e-49
+
+setprecision(mantissa)
+godunovLists = lanczos(rand(n,n))
+alphas = godunovLists[1]
+bettas = godunovLists[2]
+fullMatr = toDense(alphas, bettas)
+
+# JacobiRotation возвращает два массива (диагонали) и количество выполненых итераций [alphas, bettas, k]
+#JRRes, timerJR = @timed JacobiRotation(copy(alphas), copy(bettas), numRepeated)
+#JRRes, timerJR = @timed JacobiRotationModification(copy(alphas), copy(bettas), numRepeated, maxBettasLimit)
+originVals, denseTimer = @timed svdvals(fullMatr)
+jr, timerJR = @timed JacobiRotationWithShift(copy(alphas), copy(bettas), numRepeated)
+jr2, timerJR = @timed JacobiRotation(copy(alphas), copy(bettas), numRepeated)
+
+difference = sort(originVals,rev=true) - sort(abs.(jr[1]),rev=true)
+difference2 = sort(originVals,rev=true) - sort(abs.(jr2[1]),rev=true)
+maxBetta = maximum(jr[2])
+re = norm(difference)
+re2 = norm(difference2)
