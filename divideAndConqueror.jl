@@ -6,9 +6,6 @@ include("src/Matrices.jl")
 A fast divide-and-conquer algorithm for computing the spectra of real symmetric tridiagonal matrices """
 function PolyRoot(x, alpha, betta, lenBlock, evalPsi=false)
 
-    alpha = copy(alpha)
-    betta = copy(betta)
-
     getDet = (alpha, betta, x) -> det(toDense(alpha, betta)-x*I)
 
     len = length(alpha)
@@ -39,6 +36,9 @@ function PolyRoot(x, alpha, betta, lenBlock, evalPsi=false)
             X4 = PolyRoot(x, alpha[k+2:len], betta[k+2:len-1], lenBlock)
         end
 
+        alpha[k] = alpha[k] + abs(betta[k])
+        alpha[k+1] =  alpha[k+1] + abs(betta[k])
+
         X0 = X1*X2 + abs(betta[k])*X1*X4 + abs(betta[k])*X2*X3
         fi0 = -log(abs(betta[k])) - log(abs(X4/X2 + X3/X1))
         return evalPsi ? fi0 : X0 
@@ -56,7 +56,7 @@ function SVDQR(A)
         A = R*Q1
         #Q = Q1'*Q
     end
-    return A
+    return diag(A)
     #return [Q, A]
 end
 
@@ -90,7 +90,7 @@ function svdValsFinder(alpha, betta, lenBlock, prec=1e-15, step = 0)
     step = step+1
     if (len <= lenBlock)
         matr = toDense(alpha, betta)
-        return diag(SVDQR(matr))
+        return SVDQR(matr)
     else
         k = div(len, 2)
 
@@ -105,6 +105,9 @@ function svdValsFinder(alpha, betta, lenBlock, prec=1e-15, step = 0)
         if (len-(k+1) >= 0)
             singValsT1 = svdValsFinder(copy(alpha[k+1:end]), copy(betta[k+1:end]), lenBlock, prec, step)
         end
+
+        alpha[k] = alpha[k] + abs(betta[k])
+        alpha[k+1] = alpha[k+1] + abs(betta[k])
 
         unionSingVals = sort(vcat(singValsT0, singValsT1))
         

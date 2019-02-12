@@ -4,15 +4,15 @@ using PyPlot
 availableColors = ["red","blue", "green", "brown", "purple"]
 
 # параметры указывают, какие файлы попадают в выборку
-dim = "100"
-mantissa = "500"
+dim = "300"
+mantissa = "100"
 rep = "*"
 
 # Название графика в легенде
 #label = string("dim=", dim, " mantissa=", mantissa, " rep=", rep)
-label = string("With shift: dim=", dim, " mantissa=", mantissa)
+label = string("dim=", dim, " mantissa=", mantissa)
 color = rand(availableColors)
-dirName = "resultJacobiRotationWithShiftTests"
+dirName = "resultJacobiRotationWithoutShiftTests"
 createResultsBatPath = string(pwd(), "\\", "createResults.bat")
 createResultsfilesPath = string(pwd(), "\\", dirName)
 run(`cmd /c $createResultsBatPath $dim $mantissa $rep $createResultsfilesPath`)
