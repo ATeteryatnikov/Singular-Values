@@ -9,79 +9,52 @@ function getGivensCS(a, b)
     return [c,s]
 end
 
-function JacobiRotation(newAlphas, newBettas, numRepeat)
-  
-    if (length(newAlphas)==2)
-        sv = svdvals(toDense(newAlphas,newBettas))
-        return [sv, [0]]
+""" функция возвращает косинус и синус - элементы матрицы вращений Якоби  """
+function getJacobiCS(a, b, c)
+    if (c!=0)
+        tao = (b-a)/(2c)
+        t = sign(tao)/(abs(tao)+sqrt(1+tao^2))
+        c = 1/sqrt(1+t^2)
+        s = t*c
+    else
+        c=1
+        s=0
     end
+    return [c,s]
+end
 
-    N = length(newAlphas)  
-    for numRep in 1:1:numRepeat
-    # значения cos и sin для матрицы Гивенса (1,2).
-        (cos0, sin0) = getGivensCS(newAlphas[1],newBettas[1])
-    # после умножения трехдиагональной матрицы слева и справа на транспонированую матрицу Гивенса
-    # полученная матрица теряет трехдиагональность из-за одного элемента выходящего за диагонали. 
-    # Обозначим выступающий элемент 'P'.
-    # Вычислим матричное умножение для симметричной матрицы по формулам полученным в mathcad:
+#=
+матричные вычисления стр 380
+function tester(A)
+
+    findmax(A)
+
+end
+A = rand(1:1000,10,10)
+=#
+
+function eigenvals2x2Matrix(newAlphas, newBettas, numRepeat, prec)
+    while (newBettas[1]>prec)
+        c, s = getGivensCS(newAlphas[1], newBettas[1])
         a1 = newAlphas[1]
         a2 = newAlphas[2]
         b1 = newBettas[1]
-        b2 = newBettas[2]
-
-        newAlphas[1] = a1*cos0^2 - 2*b1*cos0*sin0 + a2*sin0^2
-        newBettas[1] = b1*cos0^2 - b1*sin0^2 + a1*cos0*sin0 - a2*cos0*sin0
-        newAlphas[2] = a2*cos0^2 + 2*b1*cos0*sin0 + a1*sin0^2
-        newBettas[2] = b2*cos0
-        P = -b2*sin0
-
-        for i in 1:1:length(newAlphas)-3
-        # Для исключения выступающего элемента P вычисляем матрицу Гивенса (i+1,i+2)
-            (cosN, sinN) = getGivensCS(newBettas[i], P)
-
-            b1 = newBettas[i]
-            b2 = newBettas[i+1]
-            b3 = newBettas[i+2]
-            a1 = newAlphas[i]
-            a2 = newAlphas[i+1]
-            a3 = newAlphas[i+2]
-        # Умножаем слева и справа на матрицу Гивенса.
-            newBettas[i] = b1*cosN - P*sinN
-            newBettas[i+1] = b2*cosN^2 - b2*sinN^2 + a2*cosN*sinN - a3*cosN*sinN
-            newBettas[i+2] = b3*cosN
-            newAlphas[i+1] = a2*cosN^2 - 2*b2*cosN*sinN + a3*sinN^2
-            newAlphas[i+2] = a3*cosN^2 + 2*b2*cosN*sinN + a2*sinN^2
-        # Получаем новый выступающий элемент P на позиции (i+2,i)       
-            P = -b3*sinN
-        end
-
-    # Последняя итераци исключает P без появления нового
-
-        (cosN, sinN) = getGivensCS(newBettas[N-2], P)
-
-        b1 = newBettas[N-2]
-        b2 = newBettas[N-1]
-        a1 = newAlphas[N-2]
-        a2 = newAlphas[N-1]
-        a3 = newAlphas[N]
-
-        newBettas[N-2] =  b1*cosN - P*sinN
-        newBettas[N-1] = b2*cosN^2 - b2*sinN^2 + a2*cosN*sinN - a3*cosN*sinN
-        newAlphas[N-1] = a2*cosN^2 - 2*b2*cosN*sinN + a3*sinN^2
-        newAlphas[N] = a3*cosN^2 + 2*b2*cosN*sinN + a2*sinN^2
+        newAlphas[1]=a1*c^2-2*b1*c*s+a2*s^2
+        newAlphas[2]=a2*c^2+2*b1*c*s+a1*s^2
+        newBettas[1] = b1*c^2-b1*s^2+a1*c*s-a2*c*s
     end
-
+    
     return [newAlphas, newBettas]
 end
 
-function WilkinsonShift(lu,rd, b, i)
+function WilkinsonShift(lu,rd, b)
     delta = (rd - lu)/2
     shiftWilkinson = rd - (sign(delta)*b^2)/(abs(delta)+sqrt(delta^2 + b^2))
 
     return shiftWilkinson
 end
 
-function JacobiRotationWithShift(newAlphas, newBettas, numRepeat)
+function ImplicitQRAlgorithmWithShift(newAlphas, newBettas, numRepeat)
   
     if (length(newAlphas)==2)
         sv = svdvals(toDense(newAlphas,newBettas))
@@ -91,10 +64,11 @@ function JacobiRotationWithShift(newAlphas, newBettas, numRepeat)
     N = length(newAlphas)  
     k=0
     firstElement = 1
+
     for numRep in 1:1:numRepeat
        
-        #shiftWilkinson = WilkinsonShift(newAlphas[firstElement],newAlphas[firstElement+1],newBettas[firstElement+1], numRep)
-        shiftWilkinson = WilkinsonShift(newAlphas[end-1],newAlphas[end],newBettas[end], numRep)
+        shiftWilkinson = WilkinsonShift(newAlphas[end-1],newAlphas[end],newBettas[end])
+        #shiftWilkinson = 0
         #shiftWilkinson = GenericSVD.generic_svdvals!(toDense(alphas[end-1:end],bettas[end]))[2]
     # значения cos и sin для матрицы Гивенса (1,2).
         (cos0, sin0) = getGivensCS(newAlphas[firstElement] - shiftWilkinson, newBettas[firstElement])
@@ -102,15 +76,15 @@ function JacobiRotationWithShift(newAlphas, newBettas, numRepeat)
     # полученная матрица теряет трехдиагональность из-за одного элемента выходящего за диагонали. 
     # Обозначим выступающий элемент 'P'.
     # Вычислим матричное умножение для симметричной матрицы по формулам полученным в mathcad:
-       
-        a1 = newAlphas[firstElement] - shiftWilkinson
-        a2 = newAlphas[firstElement+1]- shiftWilkinson
+       #shiftWilkinson=0
+        a1 = newAlphas[firstElement]
+        a2 = newAlphas[firstElement+1]
         b1 = newBettas[firstElement]
         b2 = newBettas[firstElement+1]
 
-        newAlphas[firstElement] = a1*cos0^2 - 2*b1*cos0*sin0 + a2*sin0^2 + shiftWilkinson
+        newAlphas[firstElement] = a1*cos0^2 - 2*b1*cos0*sin0 + a2*sin0^2
         newBettas[firstElement] = b1*cos0^2 - b1*sin0^2 + a1*cos0*sin0 - a2*cos0*sin0
-        newAlphas[firstElement+1] = a2*cos0^2 + 2*b1*cos0*sin0 + a1*sin0^2 + shiftWilkinson
+        newAlphas[firstElement+1] = a2*cos0^2 + 2*b1*cos0*sin0 + a1*sin0^2
         newBettas[firstElement+1] = b2*cos0
         P = -b2*sin0
         
@@ -175,76 +149,82 @@ function decomp(A,precision,limit=1000)
     return A
 end
 
-function JacobiRotationRecursive(newAlphas, newBettas, numRepeat,lenBlock=4)
+function RecursiveImplicitQRWithShift(
+    newAlphas, newBettas, prec, numQRRepeat, iterationsLimit)
 
-    k=0
-    precDeflation=1e-100
-    maxNorm=1e-20
-    numRepeat=10
-
+    # unsv - множество всех найденных сингулярных чисел
     unsv = []
 
-    function deflationChecker(bettas, precDeflation)
+    # Поиск номера первого элемента из betta меньше prec
+    function deflationChecker(bettas, prec)
         for i in 1:1:length(bettas)
-            if (abs(bettas[i])<precDeflation)
+            if (abs(bettas[i])<prec)
                 return i
             end
         end
         return -1
     end
 
-    function recJacobi(newAlphas, newBettas, numRepeat, lenBlock)
-        k=k+1
-        if (k>10000)
-            print("IterationEND")
-            throw("Iterations END Limit")
-            return
-        end
+    # Функция разделяет матрицу на две в случае, если в newBettas присутствует элемент меньше prec
+    # Алгоритм прерывается, если превышен лимит итераций iterationsLimit
+    function RecursiveImplicitQRDivider(
+        alpha, betta, prec, numQRRepeat, iterationsLimit)
 
-        N = length(newAlphas) 
-        if (N==1)
-            unsv=union(unsv,newAlphas)
-        elseif (N>1 && N<=lenBlock)
-            # while(norm(betta)>maxNorm)
-            #     alpha, betta = JacobiRotation(alpha,betta,numRepeat)
-            # end
-            #print("return by lenBlock with n: ",N,"\n")
-            M = toDense(newAlphas, newBettas)
-            a = svdvals(M)
-            #decomp(M)
-            unsv=union(unsv, a)
-        elseif (N>lenBlock)
-            alpha, betta = JacobiRotationWithShift(newAlphas,newBettas,numRepeat)
-            if (norm(betta)<maxNorm)
+        prevNormBetta = 0
+
+        while(true)
+            N = length(alpha) 
+            if (N==1)
                 unsv=union(unsv,alpha)
-                #print("return NULL\n")
-                return
-            end
-            i = deflationChecker(newBettas,precDeflation)
-            if (i>0)
-                if (i==1)
-                    #print("A ",i," ", N,"\n")
-                    unsv=union(unsv,alpha[i])
-                    recJacobi(alpha[i+1:end],betta[i+1:end],numRepeat,lenBlock)
-                elseif (i>1 && i<N-1)
-                    #print("B ",i," ", N,"\n")
-                    recJacobi(alpha[1:i],betta[1:i-1],numRepeat,lenBlock)
-                    recJacobi(alpha[i+1:end],betta[i+1:end],numRepeat,lenBlock)
-                elseif (i==N-1)
-                    #print("C ",i," ", N,"\n")
-                    unsv=union(unsv,alpha[N])
-                    recJacobi(alpha[1:i],betta[1:i-1],numRepeat,lenBlock)
-                end
+                break
+            elseif (N==2)
+                M = toDense(alpha,betta)
+                unsv = union(unsv, svdvals(M))
+                break
             else
-                recJacobi(alpha,betta,numRepeat,lenBlock)
+                alpha, betta = ImplicitQRAlgorithmWithShift(alpha,betta,numQRRepeat)
+                normBetta = norm(betta)
+                if (normBetta<prec || abs(prevNormBetta-normBetta)<prec)
+                    unsv=union(unsv,alpha)
+                    break
+                end
+                prevNormBetta = normBetta
+
+                i = deflationChecker(betta,prec)
+                if (i>0)
+                    if (i==1)
+                        unsv=union(unsv,alpha[i])
+                        RecursiveImplicitQRDivider(
+                            alpha[i+1:end],betta[i+1:end],prec,numQRRepeat,iterationsLimit
+                            )
+                        break
+                    elseif (i>1 && i<N-1)
+                        RecursiveImplicitQRDivider(
+                            alpha[1:i],betta[1:i-1],prec,numQRRepeat,iterationsLimit
+                            )
+                        RecursiveImplicitQRDivider(
+                            alpha[i+1:end],betta[i+1:end],prec,numQRRepeat,iterationsLimit
+                            )
+                        break
+                    elseif (i==N-1)
+                        unsv=union(unsv,alpha[N])
+                        RecursiveImplicitQRDivider(
+                            alpha[1:i],betta[1:i-1],prec,numQRRepeat,iterationsLimit
+                            )
+                        break
+                    end
+                end
             end
         end
     end
 
-    recJacobi(newAlphas, newBettas, numRepeat,lenBlock)
+    RecursiveImplicitQRDivider(
+        newAlphas, newBettas, prec, numQRRepeat, iterationsLimit
+        )
     
     return [unsv]
 end
+
 
 
 

@@ -8,16 +8,16 @@ using GenericSVD
 using DelimitedFiles
 # размерность СЛАУ Годунова
 startDim = 300
-stepDim = 100
+stepDim = 300
 endDim = 300
 # величина мантиссы BigFloat
 startMantissa = 100
 stepMantissa = 100
 endMantissa = 100
 # Кол-во итераций в алгоритме
-startNumIterations = 30000
-stepNumIterations = 5000
-endNumIterations = 45000
+startNumIterations = 100000
+stepNumIterations = 100000
+endNumIterations = 100000
 # Директория с результатами теста
 resultFolderName = ""
 # в алгоритме в диагонали bettas ищется первый элемент болше чем maxBettasLimit с которого начинается итерация алгоритма
@@ -51,7 +51,7 @@ for n in startDim:stepDim:endDim
 			# JacobiRotation возвращает два массива (диагонали) и количество выполненых итераций [alphas, bettas, k]
 			JRRes, timerJR = @timed JacobiRotation(copy(alphas), copy(bettas), numRepeated)
 			#JRRes, timerJR = @timed JacobiRotationModification(copy(alphas), copy(bettas), numRepeated, maxBettasLimit)
-			#JRRes, timerJR = @timed JacobiRotationWithShift(copy(alphas), copy(bettas), numRepeated, maxBettasLimit)
+			#JRRes, timerJR = @timed JacobiRotationWithShift(copy(alphas), copy(bettas), numRepeated)
 			
 			originVals, denseTimer = @timed svdvals(fullMatr)
 			
@@ -100,6 +100,12 @@ for n in startDim:stepDim:endDim
 			fileMaxBetta = open(pathMaxBetta, "w")
 			write(fileMaxBetta, string(maxBetta))
 			close(fileMaxBetta)
+
+			# норма эллементов из bettas
+			pathNormBetta = string(resultFolderName,"/NormBetta__dim_", n, "_mantissa_", mantissa, "_rep_", numRepeated, "_.txt")
+			fileNormBetta = open(pathNormBetta, "w")
+			write(fileNormBetta, string(norm(JRRes[2])))
+			close(fileNormBetta)
 
 			pathInfoLog = string(resultFolderName,"/InfoLog__dim_", n, "_mantissa_", mantissa, "_rep_", numRepeated, "_.txt")
 			fileInfoLog = open(pathInfoLog, "w")

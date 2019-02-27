@@ -13,7 +13,7 @@ prec="1e-80"
 #label = string("dim=", dim, " mantissa=", mantissa, " rep=", rep)
 label = string("dim=", dim, " numIterations=", numIterations, " prec=", prec)
 color = rand(availableColors)
-dirName = "resultImplicitQR"
+dirName = "resultImplicitQRShift"
 createResultsBatPath = string(pwd(), "\\", "createResults.bat")
 createResultsfilesPath = string(pwd(), "\\", dirName)
 run(`cmd /c $createResultsBatPath $dim $mantissa $prec $numIterations $createResultsfilesPath`)
