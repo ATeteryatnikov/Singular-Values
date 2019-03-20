@@ -7,7 +7,7 @@ include("src/Matrices.jl")
 using GenericSVD
 using DelimitedFiles
 # размерность СЛАУ Годунова
-startDim = 100
+startDim = 300
 stepDim = 50
 endDim = 300
 # величина мантиссы BigFloat
@@ -29,7 +29,7 @@ resultFolderName = ""
 # Если не указан resultFolderName, то директория будет называться "resultJacobiRotationTests"
 if (resultFolderName=="")
 	# resultFolderName = "resultJacobiRotationTests"
-	resultFolderName = "resultImplicitQRShift"
+	resultFolderName = "resultImplicitQROtherShift"
 end
 # Создаем директорию в каталоге с программой с названием resultFolderName
 try

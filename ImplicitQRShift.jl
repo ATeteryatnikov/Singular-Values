@@ -54,6 +54,14 @@ function WilkinsonShift(lu,rd, b)
     return shiftWilkinson
 end
 
+function WilkinsonShift2(lu,rd, b)
+    d = (lu-rd)/2
+    shiftWilkinson = rd + d - sign(d)*sqrt(d^2 + b^2)
+
+    return shiftWilkinson
+end
+
+
 function ImplicitQRAlgorithmWithShift(newAlphas, newBettas, numRepeat)
   
     if (length(newAlphas)==2)

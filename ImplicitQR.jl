@@ -238,3 +238,33 @@ end
 # re = norm(difference)
 # #re2 = norm(difference2)
 # re3 = norm(difference3)
+ include("src/Matrices.jl")
+ include("Lanczos.jl")
+
+n=4
+
+godunovLists = lanczos(rand(n,n))
+godunovLists = lanczos(getGodunovMatrix(n)[1])
+alphas = godunovLists[1]
+bettas = godunovLists[2]
+A = toDense(alphas, bettas)
+
+q, r = qr(A)
+
+c,s = getGivensCS(A[1,1],A[2,1])
+G1 = zeros(n,n)+I
+G1[1:2,1:2] = [c s; -s c]
+
+A2 = G1'*A*G1
+
+c,s = getGivensCS(A2[2,1],A2[3,1])
+G2 = zeros(n,n)+I
+G2[2:3,2:3] = [c s; -s c]
+
+A3 = G2'*A2*G2
+
+c,s = getGivensCS(A3[3,2],A3[4,2])
+G3 = zeros(n,n)+I
+G3[3:4,3:4] = [c s; -s c]
+
+A4 = G3'*A3*G3
