@@ -6,7 +6,7 @@ availableColors = ["red","blue", "green", "brown", "purple"]
 # параметры указывают, какие файлы попадают в выборку
 dim = "300"
 mantissa = "*"
-numIterations = "200"
+numIterations = "50"
 prec="1e-80"
 
 # Название графика в легенде	

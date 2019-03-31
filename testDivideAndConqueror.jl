@@ -5,24 +5,25 @@
 include("divideAndConqueror.jl") 
 include("src/Matrices.jl")
 using GenericSVD
+using GenericLinearAlgebra
 using DelimitedFiles
 # размерность СЛАУ Годунова
-startDim = 50
-stepDim = 50
-endDim = 100
+startDim = 30
+stepDim = 30
+endDim = 30
 # величина мантиссы BigFloat
-startMantissa = 50
-stepMantissa = 50
+startMantissa = 100
+stepMantissa = 100
 endMantissa = 100
 
-startBisectionPrec = 10
-stepBisectionPrec = 10
-endBisectionPrec = 20
+startBisectionPrec = 40
+stepBisectionPrec = 40
+endBisectionPrec = 40
 
 lenBlock = 10
 
 # Директория с результатами теста
-resultFolderName = "resultDivideAndConqueror"
+resultFolderName = "resultDivideAndConquerorTEST"
 
 # Создаем директорию в каталоге с программой с названием resultFolderName
 try
@@ -33,15 +34,18 @@ end
 
 for n in startDim:stepDim:endDim
 	for mantissa in startMantissa:stepMantissa:endMantissa
+		
+		setprecision(mantissa)
+		godunovLists = lanczos(getGodunovMatrix(n)[1])
+		alphas = godunovLists[1]
+		bettas = godunovLists[2]
+		fullMatr = toDense(alphas, bettas)
+		
 		for bisectionPrec in startBisectionPrec:stepBisectionPrec:endBisectionPrec
 
-			println("Execute: dim=", n, " mantissa=", mantissa, "_bisectionPrec=1e-",bisectionPrec, "lenBlock=",lenBlock, "\n")
+			println("Execute: dim=", n, " mantissa=", mantissa, "_bisectionPrec=1e-",bisectionPrec, "_lenBlock=",lenBlock, "\n")
 
-			setprecision(mantissa)
-			godunovLists = lanczos(getGodunovMatrix(n)[1])
-			alphas = godunovLists[1]
-			bettas = godunovLists[2]
-			fullMatr = toDense(alphas, bettas)
+			
 			
 			DAC_svdvals, DACtimer = @timed svdValsFinder(copy(alphas), copy(bettas), 4, big(1)/big(10)^(bisectionPrec))
 			
@@ -56,6 +60,12 @@ for n in startDim:stepDim:endDim
 			fileNameParameters = string(
 				"_dim_", n, "_mantissa_", mantissa, "_bisectionPrec_1e-", bisectionPrec,"_lenBlock_", lenBlock, "_.txt")
 			
+			# Сингулярные числа найденные методом divide-and-conquer
+			pathDiffSingVals = string(resultFolderName,"/SingVals_", fileNameParameters)
+			fileDifferenceSingVals = open(pathDiffSingVals, "w")
+			writedlm(fileDifferenceSingVals, split(string(DAC_svdvals)[10:end-1],","))
+			close(fileDifferenceSingVals)
+
 			# Разность сингулярных чисел полученных методом divide-and-conqueror и командой svd.
 			pathDiffSingVals = string(resultFolderName,"/DiffSingVals_", fileNameParameters)
 			fileDifferenceSingVals = open(pathDiffSingVals, "w")
@@ -89,6 +99,8 @@ for n in startDim:stepDim:endDim
 			write(fileInfoLog, string("Точность вычисления в методе бисекций : 1e-", bisectionPrec, "\n"))
 			write(fileInfoLog, string("Норма разности сингулярных чисел полученных методом divide-and-conqueror и командой svd : ", normDifference, "\n"))
 			close(fileInfoLog)
+
+			println("Норма разности сингулярных чисел полученных методом svdvals и методом divide-and-conquer : ",normDifference)
 	end
 	end
 end

@@ -24,8 +24,6 @@ function PolyRoot(x, alpha, betta, lenBlock)
         k = div(len, 2)
         X1 = X2 = X3 = X4 = big(1.0)
 
-        a1 = copy(alpha[k])
-        a2 = copy(alpha[k + 1])
         alpha[k] = alpha[k] - abs(betta[k])
         alpha[k + 1] =  alpha[k + 1] - abs(betta[k])
 
@@ -38,7 +36,7 @@ function PolyRoot(x, alpha, betta, lenBlock)
         if (k - 1 > 0)
             X3 = PolyRoot(x, alpha[1:k - 1], betta[1:k - 2], lenBlock)
         end
-if (len - k - 1 > 0)
+		if (len - k - 1 > 0)
             X4 = PolyRoot(x, alpha[k + 2:len], betta[k + 2:len - 1], lenBlock)
         end
 
@@ -54,14 +52,16 @@ end
 """
 (Не используется) Вычисление сингулярных чисел плотной матрицы QR-алгоритмом
 """
-function SVDQR(A)
+function SVDQR(A, prec)
     A = copy(A)
     Q = Diagonal(ones(size(A)[1]))
     #Q1 = Diagonal(ones(size(A)[1]))
-    for i in 1:1:100
+    r=1
+    while (r>prec)
         (Q1, R) = qr(A)
         A = R * Q1
         #Q = Q1'*Q
+        r = norm(diag(A,-1))
     end
 return diag(A)
     #return [Q, A]
@@ -80,7 +80,7 @@ end
 * limit - ограничение количества итераций. 
 """
 function bisection(a, b, alphas, bettas, lenBlock = 4, prec = 1e-15, limit = 1000)
-    root = x->PolyRoot(x, (alphas), copy(bettas), lenBlock)
+    root = x->PolyRoot(x, (alphas), (bettas), lenBlock)
     rc = 0
     c = 0
     k = 1
@@ -90,7 +90,7 @@ function bisection(a, b, alphas, bettas, lenBlock = 4, prec = 1e-15, limit = 100
         ra = root(a)
         rb = root(b)
         rc = root(c)
-        if (ra >= rc)
+        if (sign(ra) == sign(rc))
             a = c
         else
             b = c
@@ -119,7 +119,7 @@ function svdValsFinder(alpha, betta, lenBlock, prec = 1e-15, step = "")
     #println("step: ",step)
     if (len <= lenBlock)
         matr = toDense(alpha, betta)
-        return svdvals(matr)
+        return SVDQR(matr, prec)
     else
         k = div(len, 2)
 
@@ -129,10 +129,10 @@ function svdValsFinder(alpha, betta, lenBlock, prec = 1e-15, step = "")
         alpha[k + 1] = alpha[k + 1] - abs(betta[k])
 
         if (k - 1 >= 0)
-            singValsT0 = svdValsFinder(copy(alpha[1:k]), copy(betta[1:k - 1]), lenBlock, prec, step * "0")
+            singValsT0 = svdValsFinder((alpha[1:k]), (betta[1:k - 1]), lenBlock, prec, step * "0")
         end
         if (len - (k + 1) >= 0)
-            singValsT1 = svdValsFinder(copy(alpha[k + 1:end]), copy(betta[k + 1:end]), lenBlock, prec, step * "1")
+            singValsT1 = svdValsFinder((alpha[k + 1:end]), (betta[k + 1:end]), lenBlock, prec, step * "1")
         end
 
         alpha[k] = alpha[k] + abs(betta[k])

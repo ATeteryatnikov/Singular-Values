@@ -1,36 +1,31 @@
-# Программа для тестирования классического метода Якоби.
+# Программа для тестирования неявного QR-алгоритма со сдвигами Уилкинсона.
 # Матрица для тестов - левая часть СЛАУ Годунова преобразованная к трехдиагональному виду методом Ланцоша.
 
 include("Lanczos.jl")
-include("ImplicitQRShift.jl")
+include("ImplicitQR.jl")
 include("src/Matrices.jl")
 using GenericSVD
 using DelimitedFiles
 # размерность СЛАУ Годунова
-startDim = 300
-stepDim = 50
-endDim = 300
+startDim = 100
+stepDim = 200
+endDim = 100
 # величина мантиссы BigFloat
 startMantissa = 100
 stepMantissa = 100
 endMantissa = 100
 # Пороговое значение зануления внедиагональных элементов
-startPrecision = 80
-stepPrecision = 80
-endPrecision = 80
+startPrecision = 40
+stepPrecision = 40
+endPrecision = 40
 # Количество итераций неявного QR-алгоритма между проведением зануления внедиагональных элементов
 startNumIteration = 50
 stepNumIteration = 50
 endNumIteration = 50
 
 # Директория с результатами теста
-resultFolderName = ""
+resultFolderName = "resultImplicitQRShift"
 
-# Если не указан resultFolderName, то директория будет называться "resultJacobiRotationTests"
-if (resultFolderName=="")
-	# resultFolderName = "resultJacobiRotationTests"
-	resultFolderName = "resultImplicitQROtherShift"
-end
 # Создаем директорию в каталоге с программой с названием resultFolderName
 try
 	mkdir(string(pwd(), "\\", resultFolderName))
@@ -57,7 +52,8 @@ for n in startDim:stepDim:endDim
 				println("Execute: dim=", n, " mantissa=", mantissa, " prec=1e-", prec, " numIteration=", numIteration)
 
 				print("Расчет implQR")
-				implQRVals, implQRTimer = @timed RecursiveImplicitQRWithShift(copy(alphas), copy(bettas), big(1)/big(10)^(prec), numIteration, 10000)
+				implQRVals, implQRTimer = @timed RecursiveImplicitQR(
+					copy(alphas), copy(bettas), big(1)/big(10)^(prec), numIteration, true)
 				implQRVals = BigFloat.(implQRVals[1])
 				print("Расчет implQR окончен ",implQRTimer," сек.")
 

@@ -1,4 +1,4 @@
-# Программа для тестирования классического метода Якоби.
+# Программа для тестирования неявного QR-алгоритма.
 # Матрица для тестов - левая часть СЛАУ Годунова преобразованная к трехдиагональному виду методом Ланцоша.
 
 include("Lanczos.jl")
@@ -27,10 +27,8 @@ endNumIteration = 50
 resultFolderName = ""
 
 # Если не указан resultFolderName, то директория будет называться "resultJacobiRotationTests"
-if (resultFolderName=="")
-	# resultFolderName = "resultJacobiRotationTests"
-	resultFolderName = "resultImplicitQR"
-end
+resultFolderName = "resultImplicitQR"
+
 # Создаем директорию в каталоге с программой с названием resultFolderName
 try
 	mkdir(string(pwd(), "\\", resultFolderName))
