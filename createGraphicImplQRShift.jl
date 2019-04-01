@@ -6,12 +6,12 @@ availableColors = ["red","blue", "green", "brown", "purple"]
 # параметры указывают, какие файлы попадают в выборку
 dim = "300"
 mantissa = "*"
-numIterations = "50"
+numIterations = "200"
 prec="1e-80"
 
 # Название графика в легенде	
 #label = string("dim=", dim, " mantissa=", mantissa, " rep=", rep)
-label = string("dim=", dim, " numIterations=", numIterations, " prec=", prec)
+label = string("useShift=true dim=", dim, " numIterations=", numIterations, " prec=", prec)
 color = rand(availableColors)
 dirName = "resultImplicitQRShift"
 createResultsBatPath = string(pwd(), "\\", "createResults.bat")

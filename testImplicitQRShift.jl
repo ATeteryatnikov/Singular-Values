@@ -9,19 +9,19 @@ using DelimitedFiles
 # размерность СЛАУ Годунова
 startDim = 100
 stepDim = 200
-endDim = 100
+endDim = 300
 # величина мантиссы BigFloat
 startMantissa = 100
-stepMantissa = 100
-endMantissa = 100
+stepMantissa = 50
+endMantissa = 700
 # Пороговое значение зануления внедиагональных элементов
 startPrecision = 40
 stepPrecision = 40
-endPrecision = 40
+endPrecision = 80
 # Количество итераций неявного QR-алгоритма между проведением зануления внедиагональных элементов
-startNumIteration = 50
-stepNumIteration = 50
-endNumIteration = 50
+startNumIteration = 200
+stepNumIteration = 200
+endNumIteration = 200
 
 # Директория с результатами теста
 resultFolderName = "resultImplicitQRShift"
@@ -51,11 +51,11 @@ for n in startDim:stepDim:endDim
 
 				println("Execute: dim=", n, " mantissa=", mantissa, " prec=1e-", prec, " numIteration=", numIteration)
 
-				print("Расчет implQR")
+				println("Расчет implQR")
 				implQRVals, implQRTimer = @timed RecursiveImplicitQR(
 					copy(alphas), copy(bettas), big(1)/big(10)^(prec), numIteration, true)
 				implQRVals = BigFloat.(implQRVals[1])
-				print("Расчет implQR окончен ",implQRTimer," сек.")
+				println("Расчет implQR окончен ",implQRTimer," сек.")
 
 				difference = sort(originVals,rev=true) - sort(abs.(implQRVals),rev=true)
 				normDifference = norm(difference)

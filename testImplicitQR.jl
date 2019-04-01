@@ -8,20 +8,20 @@ using GenericSVD
 using DelimitedFiles
 # размерность СЛАУ Годунова
 startDim = 100
-stepDim = 50
+stepDim = 200
 endDim = 300
 # величина мантиссы BigFloat
 startMantissa = 100
-stepMantissa = 100
-endMantissa = 100
+stepMantissa = 50
+endMantissa = 700
 # Пороговое значение зануления внедиагональных элементов
-startPrecision = 80
-stepPrecision = 80
+startPrecision = 40
+stepPrecision = 40
 endPrecision = 80
 # Количество итераций неявного QR-алгоритма между проведением зануления внедиагональных элементов
-startNumIteration = 50
-stepNumIteration = 50
-endNumIteration = 50
+startNumIteration = 200
+stepNumIteration = 200
+endNumIteration = 200
 
 # Директория с результатами теста
 resultFolderName = ""
@@ -55,7 +55,7 @@ for n in startDim:stepDim:endDim
 
 				
 				print("Расчет implQR")
-				implQRVals, implQRTimer = @timed RecursiveImplicitQR(copy(alphas), copy(bettas), big(1)/big(10)^(prec), numIteration, 10000)
+				implQRVals, implQRTimer = @timed RecursiveImplicitQR(copy(alphas), copy(bettas), big(1)/big(10)^(prec), numIteration)
 				implQRVals = BigFloat.(implQRVals[1])
 				print("Расчет implQR окончен ",implQRTimer," сек.")
 				

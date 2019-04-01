@@ -8,19 +8,19 @@ using GenericSVD
 using GenericLinearAlgebra
 using DelimitedFiles
 # размерность СЛАУ Годунова
-startDim = 30
-stepDim = 30
-endDim = 30
+startDim = 300
+stepDim = 300
+endDim = 300
 # величина мантиссы BigFloat
-startMantissa = 100
-stepMantissa = 100
-endMantissa = 100
+startMantissa = 300
+stepMantissa = 200
+endMantissa = 300
 
 startBisectionPrec = 40
 stepBisectionPrec = 40
 endBisectionPrec = 40
 
-lenBlock = 10
+lenBlock = 50
 
 # Директория с результатами теста
 resultFolderName = "resultDivideAndConquerorTEST"

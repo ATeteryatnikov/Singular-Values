@@ -11,7 +11,7 @@ prec="1e-80"
 
 # Название графика в легенде	
 #label = string("dim=", dim, " mantissa=", mantissa, " rep=", rep)
-label = string("dim=", dim, " numIterations=", numIterations, " prec=", prec)
+label = string("useShift=false dim=", dim, " numIterations=", numIterations, " prec=", prec)
 color = rand(availableColors)
 dirName = "resultImplicitQR"
 createResultsBatPath = string(pwd(), "\\", "createResults.bat")
@@ -57,6 +57,6 @@ yMas = yMas[indices]
 xlabel("Количество бит в мантиссе")
 ylabel("Норма разности сингулярных чисел")
 
-plot(xMas,Float64.(yMas), "ro", label=label, color=color)
+plot(xMas,Float64.(yMas), "D", label=label, color=color)
 legend()
 grid()

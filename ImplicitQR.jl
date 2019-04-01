@@ -12,7 +12,7 @@ function getGivensCS(a, b)
     end
     c = a / r
     s = -b / r
-    return [c,s]
+return [c,s]
 end
 
 """
@@ -24,14 +24,15 @@ end
     - b - элемент вне главной диагонали подматрицы.
 * Возвращает число - сдвиг Уилкинсона.
 """
-function WilkinsonShift(lu,rd, b)
-    delta = (rd - lu)/2
-    shiftWilkinson = rd - (sign(delta)*b^2)/(abs(delta)+sqrt(delta^2 + b^2))
+function WilkinsonShift(lu, rd, b)
+    delta = (rd - lu) / 2
+    shiftWilkinson = rd - 
+        (sign(delta) * b^2) / (abs(delta) + sqrt(delta^2 + b^2))
 
     return shiftWilkinson
 end
 
-""" 
+"""
 Функция выполняет 'numIterations' итераций неявного QR-алгоритма
 для симметричной трехдиагональной положительно определенной матрицы.
 * Принимает:
@@ -41,7 +42,7 @@ end
     - numIterations - количество выполняемых итераций.
 * Возвращает два массива - главную и соседнюю с главной диагонали.
 """
-function ImplicitQRAlgorithm(alphas, bettas, useShift=false, numIterations=1)
+function ImplicitQRAlgorithm(alphas, bettas, useShift = false, numIterations = 1)
     
     N = length(alphas)  
 
@@ -49,16 +50,18 @@ function ImplicitQRAlgorithm(alphas, bettas, useShift=false, numIterations=1)
     # значения cos и sin для матрицы Гивенса (1,2).
         
         if (useShift) 
-            shiftWilkinson = WilkinsonShift(alphas[end-1], alphas[end], bettas[end])
+            shiftWilkinson = WilkinsonShift(alphas[end - 1], alphas[end], bettas[end])
         else
             shiftWilkinson = 0
         end
 
         (cos0, sin0) = getGivensCS(alphas[1] - shiftWilkinson, bettas[1])
-    # после умножения трехдиагональной матрицы слева и справа на транспонированую матрицу Гивенса
-    # полученная матрица теряет трехдиагональность из-за одного элемента выходящего за диагонали. 
+    # после умножения матрицы слева и справа на транспонированую
+    # матрицу Гивенса, полученная матрица теряет трехдиагональность из-за двух
+    # элементов выходящих за диагонали. 
     # Обозначим выступающий элемент 'P'.
-    # Вычислим матричное умножение для симметричной матрицы по формулам полученным в mathcad:
+    # Вычислим матричное умножение для симметричной матрицы 
+    # по формулам полученным в mathcad:
         
         a1 = alphas[1]
         a2 = alphas[2]
@@ -72,7 +75,7 @@ function ImplicitQRAlgorithm(alphas, bettas, useShift=false, numIterations=1)
         P = -b2 * sin0
         
         for i in 1:1:length(alphas) - 3
-        # Для исключения выступающего элемента P вычисляем матрицу Гивенса (i+1,i+2)
+        # Для исключения элемента P вычисляем матрицу Гивенса (i+1,i+2)
             (cosN, sinN) = getGivensCS(bettas[i], P)
 
             b1 = bettas[i]
@@ -110,7 +113,7 @@ function ImplicitQRAlgorithm(alphas, bettas, useShift=false, numIterations=1)
     return [alphas, bettas]
 end
 
-""" 
+"""
 Функция выполняет 'numIterations' итераций неявного QR-алгоритма
 для симметричной трехдиагональной положительно определенной матрицы.
 * Принимает:
@@ -122,7 +125,9 @@ end
 на наличие элемента из соседней с главной диагонали меньше чем prec; 
 * Возвращает два массива - главную и соседнюю с главной диагонали.
 """
-function RecursiveImplicitQR(alphas, bettas, prec, numQRIterations, useShift=false)
+function RecursiveImplicitQR(
+    alphas, bettas, prec, numQRIterations, useShift = false
+    )
 
     # unsv - множество всех найденных сингулярных чисел
     unsv = []
@@ -137,8 +142,11 @@ function RecursiveImplicitQR(alphas, bettas, prec, numQRIterations, useShift=fal
         return -1
     end
 
-    # Функция разделяет матрицу на две в случае, если в bettas присутствует элемент меньше prec
-    function RecursiveImplicitQRDivider(alpha, betta, prec, numQRIterations, useShift=false)
+    # Функция разделяет матрицу на две в случае, 
+    # если в bettas присутствует элемент меньше prec
+    function RecursiveImplicitQRDivider(
+        alpha, betta, prec, numQRIterations, useShift = false
+        )
 
         prevNormBetta = 0
 
@@ -152,7 +160,8 @@ function RecursiveImplicitQR(alphas, bettas, prec, numQRIterations, useShift=fal
                 unsv = union(unsv, svdvals(M))
                 break
             else
-                alpha, betta = ImplicitQRAlgorithm(alpha, betta, useShift, numQRIterations)
+                alpha, betta = ImplicitQRAlgorithm(alpha, betta, 
+                    useShift, numQRIterations)
                 normBetta = norm(betta)
                 if (normBetta < prec || abs(prevNormBetta - normBetta) < prec)
                     unsv = union(unsv, alpha)
@@ -164,19 +173,19 @@ function RecursiveImplicitQR(alphas, bettas, prec, numQRIterations, useShift=fal
                 if (i > 0)
                     if (i == 1)
                         unsv = union(unsv, alpha[i])
-                        RecursiveImplicitQRDivider(
-                            alpha[i + 1:end], betta[i + 1:end], prec, numQRIterations, useShift)
+                        RecursiveImplicitQRDivider(alpha[i + 1:end], betta[i + 1:end],
+                            prec, numQRIterations, useShift)
                         break
                     elseif (i > 1 && i < N - 1)
-                        RecursiveImplicitQRDivider(
-                            alpha[1:i], betta[1:i - 1], prec, numQRIterations, useShift)
-                        RecursiveImplicitQRDivider(
-                            alpha[i + 1:end], betta[i + 1:end], prec, numQRIterations, useShift)
+                        RecursiveImplicitQRDivider(alpha[1:i], betta[1:i - 1],
+                            prec, numQRIterations, useShift)
+                        RecursiveImplicitQRDivider(alpha[i + 1:end], betta[i + 1:end],
+                            prec, numQRIterations, useShift)
                         break
                     elseif (i == N - 1)
                         unsv = union(unsv, alpha[N])
-                        RecursiveImplicitQRDivider(
-                            alpha[1:i], betta[1:i - 1], prec, numQRIterations, useShift)
+                        RecursiveImplicitQRDivider(alpha[1:i], betta[1:i - 1],
+                            prec, numQRIterations, useShift)
                         break
                     end
                 end
@@ -184,8 +193,7 @@ function RecursiveImplicitQR(alphas, bettas, prec, numQRIterations, useShift=fal
         end
     end
 
-    RecursiveImplicitQRDivider(
-        alphas, bettas, prec, numQRIterations, useShift)
+    RecursiveImplicitQRDivider(alphas, bettas, prec, numQRIterations, useShift)
     
     return [unsv]
 end

@@ -5,7 +5,7 @@ set prec=%3
 set numIteration=%4
 set pathResults=%5
 echo %pathResults%
-set value=NormDiff
+set value=ImplQRTime
 echo Agregate values for %value%*_dim_%dim%*_mantissa_%mantissa%*_prec_%prec%*__numIteration_%numIteration%*
 del "%pathResults%\graphicPoints.txt" 
 for %%a in ("%pathResults%\%value%*_dim_%dim%*_mantissa_%mantissa%*_prec_%prec%*_numIteration_%numIteration%*") do (
