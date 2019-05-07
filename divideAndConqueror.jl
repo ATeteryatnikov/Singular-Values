@@ -10,9 +10,10 @@ A fast divide-and-conquer algorithm for computing the spectra of real symmetric 
 * x - точка в которой вычисляется значение характеристического полинома;
 * alphas - главная диагональ трехдиагональной матрицы;
 * bettas - соседняя с главной диагональ трехдиагональной матрицы;
-* lenBlock - максимальная размерность матриц в рекурсивном разделении матриц при которой расчет значения характеристического полинома происходит через 'det'. 
+* lenBlock - максимальная размерность матриц в рекурсивном разделении матриц 
+при которой расчет значения характеристического полинома происходит через 'det'. 
 """
-function PolyRoot(x, alpha, betta, lenBlock)
+function PolyRoot(x, alpha, betta, lenBlock, evalPsi=false)
 
     len = length(alpha)
     if (len <= lenBlock && len > 0)
@@ -44,18 +45,20 @@ function PolyRoot(x, alpha, betta, lenBlock)
         alpha[k + 1] =  alpha[k + 1] + abs(betta[k])
 
         X0 = X1 * X2 + abs(betta[k]) * X1 * X4 + abs(betta[k]) * X2 * X3
-       
-        return X0
+        
+        fi0 = -log(abs(betta[k])) - log(abs(X4/X2 + X3/X1))
+        return evalPsi ? fi0 : X0 
+
+        #return X0
     end
 end
 
 """
-(Не используется) Вычисление сингулярных чисел плотной матрицы QR-алгоритмом
+Вычисление собственных чисел плотной матрицы QR-алгоритмом
 """
-function SVDQR(A, prec)
+function denseQRAlgorithm(A, prec)
     A = copy(A)
     Q = Diagonal(ones(size(A)[1]))
-    #Q1 = Diagonal(ones(size(A)[1]))
     r=1
     while (r>prec)
         (Q1, R) = qr(A)
@@ -68,15 +71,19 @@ return diag(A)
 end
 
 """
- Вычисление корня характеристического полинома методом половинного деления на интервале.
+ Вычисление корня характеристического полинома методом половинного 
+деления на интервале.
 Вычисление значений производится функцией PolyRoot.
 Функция возвращает корень характеристического полинома матрицы.
 Функция принимает на вход:
 * a, b - точки начала и конца интервала в котором происходит поиск корня;
 * alphas - главная диагональ трехдиагональной матрицы;
 * bettas - соседняя с главной диагональ трехдиагональной матрицы;
-* lenBlock - (для метода PolyRoot) Максимальная размерность матриц в рекурсивном разделении матриц при которой расчет значения характеристического полинома происходит через 'det';
-* prec - при нахождении значения характеристического полинома меньше чем prec, считаем, что корень найден; 
+* lenBlock - (для метода PolyRoot) Максимальная размерность матриц в рекурсивном 
+разделении матриц при которой расчет значения характеристического 
+полинома происходит через 'det';
+* prec - при нахождении значения характеристического полинома меньше чем prec, 
+считаем, что корень найден; 
 * limit - ограничение количества итераций. 
 """
 function bisection(a, b, alphas, bettas, lenBlock = 4, prec = 1e-15, limit = 1000)
@@ -90,6 +97,9 @@ function bisection(a, b, alphas, bettas, lenBlock = 4, prec = 1e-15, limit = 100
         ra = root(a)
         rb = root(b)
         rc = root(c)
+        if (sign(ra) == sign(rb))
+            return a
+        end
         if (sign(ra) == sign(rc))
             a = c
         else
@@ -103,14 +113,19 @@ function bisection(a, b, alphas, bettas, lenBlock = 4, prec = 1e-15, limit = 100
 end
 
 """
- Алгоритм "divide-and-conquer" (описывается в пукте 4 статьи "V. Rokhlin A fast divide-and-conquer algorithm for computing the spectra of real symmetric tridiagonal matrices")
-Рекурсивный алгоритм вычисления сингулярных чисел.
-Функция возвращает массив сингулярных чисел.
+ Алгоритм "divide-and-conquer" 
+(описывается в пукте 4 статьи "V. Rokhlin A fast divide-and-conquer algorithm for computing
+ the spectra of real symmetric tridiagonal matrices")
+Рекурсивный алгоритм вычисления собственных чисел.
+Функция возвращает массив собственных чисел.
 Функция принимает на вход:
 * alphas - главная диагональ трехдиагональной матрицы;
 * bettas - соседняя с главной диагональ трехдиагональной матрицы;
-* lenBlock - (для метода PolyRoot) Максимальная размерность матриц в рекурсивном разделении матриц при которой расчет значения характеристического полинома происходит через 'det', а расчет сингулярных чисел через 'svdvals';
-* prec - при нахождении значения характеристического полинома меньше чем prec, считаем, что корень найден; 
+* lenBlock - (для метода PolyRoot) Максимальная размерность матриц в рекурсивном разделении 
+матриц при которой расчет значения характеристического полинома происходит через 'det', а 
+расчет собственных чисел через 'denseQRAlgorithm';
+* prec - при нахождении значения характеристического полинома меньше чем prec, считаем, 
+что корень найден; 
 * step - Отладочная информация, позволяет определить, какая часть матрицы используется. 
 """
 function svdValsFinder(alpha, betta, lenBlock, prec = 1e-15, step = "")
@@ -119,7 +134,7 @@ function svdValsFinder(alpha, betta, lenBlock, prec = 1e-15, step = "")
     #println("step: ",step)
     if (len <= lenBlock)
         matr = toDense(alpha, betta)
-        return SVDQR(matr, prec)
+        return denseQRAlgorithm(matr, prec)
     else
         k = div(len, 2)
 

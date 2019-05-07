@@ -47,7 +47,7 @@ for n in startDim:stepDim:endDim
 
 			
 			
-			DAC_svdvals, DACtimer = @timed svdValsFinder(copy(alphas), copy(bettas), 4, big(1)/big(10)^(bisectionPrec))
+			DAC_svdvals, DACtimer = @timed svdValsFinder(copy(alphas), copy(bettas), lenBlock, big(1)/big(10)^(bisectionPrec))
 			
 			println("divideAndConqueror complete!")
 
