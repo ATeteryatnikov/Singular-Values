@@ -122,6 +122,7 @@ end
     - prec - наибольшее отклонение по модулю нормы внедиагональных элементов от нуля;
     - useShift - параметр использования сдвигов Уилкинсона;
     - numQRIterations - количество выполняемых итераций между выполнением проверок
+    на зануление внедиагонального элемента;
 на наличие элемента из соседней с главной диагонали меньше чем prec; 
 * Возвращает два массива - главную и соседнюю с главной диагонали.
 """
@@ -129,7 +130,7 @@ function RecursiveImplicitQR(
     alphas, bettas, prec, numQRIterations, useShift = false
     )
 
-    # unsv - множество всех найденных сингулярных чисел
+    # unsv - множество всех найденных собственных чисел
     unsv = []
 
     # Поиск индекса первого элемента из соседней с главной диагонали меньше prec
@@ -156,7 +157,7 @@ function RecursiveImplicitQR(
                 unsv = union(unsv, alpha)
                 break
             elseif (N == 2)
-            M = toDense(alpha, betta)
+                M = toDense(alpha, betta)
                 unsv = union(unsv, svdvals(M))
                 break
             else
@@ -195,5 +196,5 @@ function RecursiveImplicitQR(
 
     RecursiveImplicitQRDivider(alphas, bettas, prec, numQRIterations, useShift)
     
-    return [unsv]
+    return unsv
 end

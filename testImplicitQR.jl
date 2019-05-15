@@ -7,13 +7,13 @@ include("src/Matrices.jl")
 using GenericSVD
 using DelimitedFiles
 # размерность СЛАУ Годунова
-startDim = 100
+startDim = 50
 stepDim = 200
-endDim = 300
+endDim = 50
 # величина мантиссы BigFloat
 startMantissa = 100
 stepMantissa = 50
-endMantissa = 700
+endMantissa = 100
 # Пороговое значение зануления внедиагональных элементов
 startPrecision = 40
 stepPrecision = 40
@@ -27,7 +27,7 @@ endNumIteration = 200
 resultFolderName = ""
 
 # Если не указан resultFolderName, то директория будет называться "resultJacobiRotationTests"
-resultFolderName = "resultImplicitQR"
+resultFolderName = "resultImplicitQR11"
 
 # Создаем директорию в каталоге с программой с названием resultFolderName
 try
@@ -56,7 +56,7 @@ for n in startDim:stepDim:endDim
 				
 				print("Расчет implQR")
 				implQRVals, implQRTimer = @timed RecursiveImplicitQR(copy(alphas), copy(bettas), big(1)/big(10)^(prec), numIteration)
-				implQRVals = BigFloat.(implQRVals[1])
+	
 				print("Расчет implQR окончен ",implQRTimer," сек.")
 				
 				
