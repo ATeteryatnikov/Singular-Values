@@ -9,16 +9,16 @@ using GenericLinearAlgebra
 using DelimitedFiles
 
 # размерность СЛАУ Годунова
-startDim = 100
-stepDim = 200
-endDim = 100
+startDim = 50
+stepDim = 50
+endDim = 50
 # величина мантиссы BigFloat
-startMantissa = 300
-stepMantissa = 200
-endMantissa = 300
+startMantissa = 100
+stepMantissa = 100
+endMantissa = 100
 
 startBisectionPrec = 80
-stepBisectionPrec = 40
+stepBisectionPrec = 80
 endBisectionPrec = 80
 
 startLenBlock = 6
@@ -27,7 +27,7 @@ endLenBlock = 6
 
 
 # Директория с результатами теста
-resultFolderName = "resultDivideAndConquerExperimental"
+resultFolderName = "resultDivideAndConquerExperimentalMod2"
 
 # Создаем директорию в каталоге с программой с названием resultFolderName
 try

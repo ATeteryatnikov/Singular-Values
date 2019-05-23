@@ -2,28 +2,28 @@
 # из V. Rokhlin "A fast divide-and-conquer algorithm for computing the spectra of real symmetric tridiagonal matrices"
 # Матрица для тестов - левая часть СЛАУ Годунова преобразованная к трехдиагональному виду методом Ланцоша.
 
-include("divideAndConqueror.jl") 
+include("divideAndConquer.jl") 
 include("src/Matrices.jl")
 using GenericSVD
 using GenericLinearAlgebra
 using DelimitedFiles
 # размерность СЛАУ Годунова
 startDim = 300
-stepDim = 300
+stepDim = 100
 endDim = 300
 # величина мантиссы BigFloat
-startMantissa = 300
+startMantissa = 100
 stepMantissa = 200
 endMantissa = 300
 
 startBisectionPrec = 40
 stepBisectionPrec = 40
-endBisectionPrec = 40
+endBisectionPrec = 80
 
-lenBlock = 50
+lenBlock = 4
 
 # Директория с результатами теста
-resultFolderName = "resultDivideAndConquerorTEST"
+resultFolderName = "resultDivideAndConquer"
 
 # Создаем директорию в каталоге с программой с названием resultFolderName
 try

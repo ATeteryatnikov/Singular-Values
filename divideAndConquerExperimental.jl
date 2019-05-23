@@ -167,7 +167,11 @@ function matrixPartsEvaluator(submatrixDict, binaryCode)
 
 	bk = abs(submatrixDict["b"])
 
-    # функция вычисления полинома в точке по собственным числам дочерних матриц
+    # polyEval - функция вычисления значения полинома в точке, 
+    # как произведения разностей собственных чисел и указанного x.
+    # Функция принимает точку x и type - строка служащая ключем для хэш-таблицы,
+    # если значение в хэш-таблицы не найдено - возвращает единицу т.к.
+    # считаем, что значение характерстического полинома пустой матрицы единица
 	function polyEval(x, type)
 		if (haskey(submatrixDict, type))
 			return prod(submatrixDict[type] .- x)
@@ -175,7 +179,8 @@ function matrixPartsEvaluator(submatrixDict, binaryCode)
 			return 1
 		end
 	end
-	evaluator = (x, X1, X2, X3, X4)->polyEval(x, X1) * polyEval(x, X2) + bk * (polyEval(x, X1) * polyEval(x, X4) + polyEval(x, X2) * polyEval(x, X3))
+	evaluator = (x, X1, X2, X3, X4)->
+		polyEval(x, X1) * polyEval(x, X2) + bk * (polyEval(x, X1) * polyEval(x, X4) + polyEval(x, X2) * polyEval(x, X3))
 
 	Tevaluator = (x)->evaluator(x, "T" * binaryCode * "0", "T" * binaryCode * "1", "S" * binaryCode * "0", "R" * binaryCode * "1")
 	Sevaluator = (x)->evaluator(x, "T" * binaryCode * "0", "S" * binaryCode * "1", "S" * binaryCode * "0", "Q" * binaryCode * "1")
@@ -184,9 +189,11 @@ function matrixPartsEvaluator(submatrixDict, binaryCode)
 	
 	dict = Dict()
 	
-	#hasZero = isa(findfirst("0", binaryCode), UnitRange)
+	hasZero = isa(findfirst("0", binaryCode), UnitRange)
 	hasOne = isa(findfirst("1", binaryCode), UnitRange)
 
+	# Условия необходимости вычисления части матрицы  
+	# в источнике, Theorem 4.7.
 	if (binaryCode == "")
 		# evaluate only "T" matrix
 	elseif (binaryCode == "0")
@@ -197,16 +204,18 @@ function matrixPartsEvaluator(submatrixDict, binaryCode)
 		push!(dict, "R" * binaryCode => singValsR)
 	else
 
-		if (hasOne)
+		if (hasOne && hasZero)
 			singValsQ = bisectBetween(submatrixDict["R" * binaryCode * "0"], submatrixDict["S" * binaryCode * "1"], bk, Qevaluator)
 			push!(dict, "Q" * binaryCode => singValsQ)
 		end
-		#if (hasZero && hasOne)
-		singValsR = bisectBetween(submatrixDict["R" * binaryCode * "0"], submatrixDict["T" * binaryCode * "1"], bk, Revaluator)
-		push!(dict, "R" * binaryCode => singValsR)
-		singValsS = bisectBetween(submatrixDict["T" * binaryCode * "0"], submatrixDict["S" * binaryCode * "1"], bk, Sevaluator)
-		push!(dict, "S" * binaryCode => singValsS)
-		#end
+		if (hasOne)
+			singValsR = bisectBetween(submatrixDict["R" * binaryCode * "0"], submatrixDict["T" * binaryCode * "1"], bk, Revaluator)
+			push!(dict, "R" * binaryCode => singValsR)
+		end
+		if (hasZero)
+			singValsS = bisectBetween(submatrixDict["T" * binaryCode * "0"], submatrixDict["S" * binaryCode * "1"], bk, Sevaluator)
+			push!(dict, "S" * binaryCode => singValsS)
+		end
 	end
 	singValsT = bisectBetween(submatrixDict["T" * binaryCode * "0"], submatrixDict["T" * binaryCode * "1"], bk, Tevaluator)
 	push!(dict, "T" * binaryCode => singValsT)
@@ -250,19 +259,33 @@ end
 function bisection(rootFunc::Function, a, b, prec, limit)
 	rc = 0
     c = 0
+    ra = 0
+    rb = 0
+    a_changed = true
+    b_changed = true
     k = 1
     while(k < limit)
         k = k + 1
         c = (a + b) / 2
-        ra = rootFunc(a)
-        rb = rootFunc(b)
-        rc = rootFunc(c)
+        if (a_changed)
+        	ra = rootFunc(a)
+        	a_changed = false
+        end
+        if (b_changed)
+        	rb = rootFunc(b)
+        	b_changed = false
+        end
+        
         if (sign(ra) == sign(rb))
             return a
         end
+        rc = rootFunc(c)
+
         if (sign(ra) == sign(rc))
+        	a_changed = true
             a = c
         else
+        	b_changed = true
             b = c
         end
         if (abs(rc) < prec)
@@ -271,5 +294,3 @@ function bisection(rootFunc::Function, a, b, prec, limit)
     end
     return c
 end
-
-

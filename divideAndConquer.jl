@@ -1,6 +1,7 @@
 include("src/LogGenerator.jl")
 include("lanczos.jl")
 include("src/Matrices.jl")     
+include("ImplicitQR.jl")
 
 """
  Вычисление значения характеристического полинома в точке x по теореме 4.6 из статьи "V. Rokhlin
@@ -133,8 +134,9 @@ function svdValsFinder(alpha, betta, lenBlock, prec = 1e-15, step = "")
     len = length(alpha)
     #println("step: ",step)
     if (len <= lenBlock)
-        matr = toDense(alpha, betta)
-        return denseQRAlgorithm(matr, prec)
+        return RecursiveImplicitQR(copy(alpha), copy(betta), prec, 200)
+        #matr = toDense(alpha, betta)
+        #return denseQRAlgorithm(matr, prec)
     else
         k = div(len, 2)
 
@@ -157,7 +159,7 @@ function svdValsFinder(alpha, betta, lenBlock, prec = 1e-15, step = "")
         
         singVals = []
         for i in 1:1:len - 1
-            println("start bisection ", i, " of ", len)
+            #println("start bisection ", i, " of ", len)
             push!(singVals, bisection(unionSingVals[i], unionSingVals[i + 1], alphas, bettas, lenBlock, prec))
         end
         push!(singVals, bisection(unionSingVals[len], unionSingVals[len] + 2 * betta[k], alphas, bettas, lenBlock, prec))
