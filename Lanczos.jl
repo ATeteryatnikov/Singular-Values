@@ -6,7 +6,16 @@ catch ex
     print("Что-то пошло не так: ", ex)
 end
 
-""" Algorithm from LioydTtrefethen - Numerical Line page 277 (Modified for not Symmetric) """
+""" 
+Метод Ланцоша. Источник
+LioydTtrefethen - Numerical Line 
+page 277 (Modified for not Symmetric) 
+Функция принимает:
+	- A - прямоугольная вещественная матрица.
+Функция возвращает:
+	- alpha - главная диагональ симметричной трездиагональной матрицы;
+	- betta - соседняя с главной диагональ.
+"""
 function lanczos(A)
 
     m = size(A)[1]

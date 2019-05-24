@@ -1,8 +1,11 @@
 # Программа для тестирования неявного QR-алгоритма.
+# Watkins D. S., Elsner L. Chasing algorithms for the eigenvalue problem 
+# //SIAM journal on matrix analysis and 
+# applications. – 1991. – Т. 12. – №. 2. – С. 374-384
 # Матрица для тестов - левая часть СЛАУ Годунова преобразованная к трехдиагональному виду методом Ланцоша.
 
-include("Lanczos.jl")
-include("ImplicitQR.jl")
+include("lanczos.jl")
+include("implicitQR.jl")
 include("src/Matrices.jl")
 using GenericSVD
 using DelimitedFiles

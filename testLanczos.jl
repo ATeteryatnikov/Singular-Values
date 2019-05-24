@@ -1,14 +1,16 @@
+# Программа для тестирования метода Ланцоша
+
 try
-    include("Lanczos.jl")
+    include("lanczos.jl")
     include("src/Matrices.jl")
     using GenericSVD
 catch ex
     print("Что-то пошло не так: ", ex)
 end
 
-###########################  Check Lanczos Algorithm
-
+# Мантисса чисел BigFloat
 bigFloatMantissa = 100
+# Размерность СЛАУ Годунова
 n = 80
 
 setprecision(bigFloatMantissa)

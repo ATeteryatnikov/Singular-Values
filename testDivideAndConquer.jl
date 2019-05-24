@@ -1,4 +1,4 @@
-# Программа для тестирования алгоритма divide-and-conqueror
+# Программа для тестирования алгоритма divide-and-conquer
 # из V. Rokhlin "A fast divide-and-conquer algorithm for computing the spectra of real symmetric tridiagonal matrices"
 # Матрица для тестов - левая часть СЛАУ Годунова преобразованная к трехдиагональному виду методом Ланцоша.
 
@@ -7,23 +7,31 @@ include("src/Matrices.jl")
 using GenericSVD
 using GenericLinearAlgebra
 using DelimitedFiles
+
 # размерность СЛАУ Годунова
-startDim = 300
-stepDim = 100
-endDim = 300
+startDim = 50
+stepDim = 50
+endDim = 50
 # величина мантиссы BigFloat
 startMantissa = 100
-stepMantissa = 200
-endMantissa = 300
-
-startBisectionPrec = 40
-stepBisectionPrec = 40
+stepMantissa = 100
+endMantissa = 100
+# Наибольшее отклонение характеристического полинома от нуля в методе бисекций.
+# Если значение полинома меньше заданного числа,
+# считаем, что корень найден;
+startBisectionPrec = 80
+stepBisectionPrec = 80
 endBisectionPrec = 80
+# максимальная размерность матриц в рекурсивном разделении матриц, 
+# при которой расчет значения характеристического полинома происходит через
+# функцию Julia "det".
+startLenBlock = 6
+stepLenBlock = 6
+endLenBlock = 6
 
-lenBlock = 4
 
 # Директория с результатами теста
-resultFolderName = "resultDivideAndConquer"
+resultFolderName = "resultDivideAndConquerExperimentalMod2"
 
 # Создаем директорию в каталоге с программой с названием resultFolderName
 try
@@ -40,67 +48,69 @@ for n in startDim:stepDim:endDim
 		alphas = godunovLists[1]
 		bettas = godunovLists[2]
 		fullMatr = toDense(alphas, bettas)
-		
+
+		Julia_svdvals, JuliaSVDTimer = @timed GenericSVD.generic_svdvals!(fullMatr)
+
 		for bisectionPrec in startBisectionPrec:stepBisectionPrec:endBisectionPrec
-
-			println("Execute: dim=", n, " mantissa=", mantissa, "_bisectionPrec=1e-",bisectionPrec, "_lenBlock=",lenBlock, "\n")
-
+			for lenBlock in startLenBlock:stepLenBlock:endLenBlock
 			
+				println("Execute: dim=", n, " mantissa=", mantissa, "_bisectionPrec=1e-",bisectionPrec, "_lenBlock=", lenBlock, "\n")
+
+				DAC_svdvals, DACtimer = @timed divideAndConquer(copy(alphas), copy(bettas), big(1)/big(10)^(bisectionPrec), 500, lenBlock)
 			
-			DAC_svdvals, DACtimer = @timed svdValsFinder(copy(alphas), copy(bettas), lenBlock, big(1)/big(10)^(bisectionPrec))
-			
-			println("divideAndConqueror complete!")
+				println("divideAndConquer complete!")
 
-			Julia_svdvals, JuliaSVDTimer = @timed GenericSVD.generic_svdvals!(fullMatr)			
-			
-			difference = sort(Julia_svdvals,rev=true) - sort(abs.(DAC_svdvals),rev=true)
-			normDifference = norm(difference)
+						
+				
+				difference = sort(Julia_svdvals,rev=true) - sort(DAC_svdvals,rev=true)
+				normDifference = norm(difference)
 
-			### Запись в файлы ###
-			fileNameParameters = string(
-				"_dim_", n, "_mantissa_", mantissa, "_bisectionPrec_1e-", bisectionPrec,"_lenBlock_", lenBlock, "_.txt")
-			
-			# Сингулярные числа найденные методом divide-and-conquer
-			pathDiffSingVals = string(resultFolderName,"/SingVals_", fileNameParameters)
-			fileDifferenceSingVals = open(pathDiffSingVals, "w")
-			writedlm(fileDifferenceSingVals, split(string(DAC_svdvals)[10:end-1],","))
-			close(fileDifferenceSingVals)
+				### Запись в файлы ###
+				fileNameParameters = string(
+					"_dim_", n, "_mantissa_", mantissa, "_bisectionPrec_1e-", bisectionPrec,"_lenBlock_", lenBlock, "_.txt")
+				
+				# Сингулярные числа найденные методом divide-and-conquer
+				pathDiffSingVals = string(resultFolderName,"/SingVals_", fileNameParameters)
+				fileDifferenceSingVals = open(pathDiffSingVals, "w")
+				writedlm(fileDifferenceSingVals, split(string(DAC_svdvals)[10:end-1],","))
+				close(fileDifferenceSingVals)
 
-			# Разность сингулярных чисел полученных методом divide-and-conqueror и командой svd.
-			pathDiffSingVals = string(resultFolderName,"/DiffSingVals_", fileNameParameters)
-			fileDifferenceSingVals = open(pathDiffSingVals, "w")
-			writedlm(fileDifferenceSingVals, split(string(difference)[10:end-1],","))
-			close(fileDifferenceSingVals)
+				# Разность сингулярных чисел полученных методом divide-and-conquer и командой svd.
+				pathDiffSingVals = string(resultFolderName,"/DiffSingVals_", fileNameParameters)
+				fileDifferenceSingVals = open(pathDiffSingVals, "w")
+				writedlm(fileDifferenceSingVals, split(string(difference)[10:end-1],","))
+				close(fileDifferenceSingVals)
 
-			# Норма разности сингулярных чисел полученных методом divide-and-conqueror и командой svd.
-			pathNormDiffSingVals = string(resultFolderName,"/NormDiffSingVals_", fileNameParameters)
-			fileNormDifferenceSingVals = open(pathNormDiffSingVals, "w")
-			write(fileNormDifferenceSingVals, string(normDifference))
-			close(fileNormDifferenceSingVals)
+				# Норма разности сингулярных чисел полученных методом divide-and-conquer и командой svd.
+				pathNormDiffSingVals = string(resultFolderName,"/NormDiffSingVals_", fileNameParameters)
+				fileNormDifferenceSingVals = open(pathNormDiffSingVals, "w")
+				write(fileNormDifferenceSingVals, string(normDifference))
+				close(fileNormDifferenceSingVals)
 
-			# Время работы метода divide-and-conqueror
-			pathDACTime = string(resultFolderName,"/DACTime_", fileNameParameters)
-			fileDACTime = open(pathDACTime, "w")
-			writedlm(fileDACTime, DACtimer)
-			close(fileDACTime)
+				# Время работы метода divide-and-conquer
+				pathDACTime = string(resultFolderName,"/DACTime_", fileNameParameters)
+				fileDACTime = open(pathDACTime, "w")
+				writedlm(fileDACTime, DACtimer)
+				close(fileDACTime)
 
-			# Время работы команды svd
-			pathSVDTime = string(resultFolderName,"/JuliaSVDTime_", fileNameParameters)
-			fileSVDTime = open(pathSVDTime, "w")
-			writedlm(fileSVDTime, JuliaSVDTimer)
-			close(fileSVDTime)
+				# Время работы команды svd
+				pathSVDTime = string(resultFolderName,"/JuliaSVDTime_", fileNameParameters)
+				fileSVDTime = open(pathSVDTime, "w")
+				writedlm(fileSVDTime, JuliaSVDTimer)
+				close(fileSVDTime)
 
-			pathInfoLog = string(resultFolderName,"/InfoLog_", fileNameParameters)
-			fileInfoLog = open(pathInfoLog, "w")
-			write(fileInfoLog, string("Мантисса : ", mantissa, "\n"))
-			write(fileInfoLog, string("Размерность СЛАУ Годунова : ", n, "\n"))
-			write(fileInfoLog, string("Время работы команды svd : ", JuliaSVDTimer, "\n"))
-			write(fileInfoLog, string("Время работы метода divide-and-conqueror : ", DACtimer, "\n"))
-			write(fileInfoLog, string("Точность вычисления в методе бисекций : 1e-", bisectionPrec, "\n"))
-			write(fileInfoLog, string("Норма разности сингулярных чисел полученных методом divide-and-conqueror и командой svd : ", normDifference, "\n"))
-			close(fileInfoLog)
+				pathInfoLog = string(resultFolderName,"/InfoLog_", fileNameParameters)
+				fileInfoLog = open(pathInfoLog, "w")
+				write(fileInfoLog, string("Мантисса : ", mantissa, "\n"))
+				write(fileInfoLog, string("Размерность СЛАУ Годунова : ", n, "\n"))
+				write(fileInfoLog, string("Время работы команды svd : ", JuliaSVDTimer, "\n"))
+				write(fileInfoLog, string("Время работы метода divide-and-conquer : ", DACtimer, "\n"))
+				write(fileInfoLog, string("Точность вычисления в методе бисекций : 1e-", bisectionPrec, "\n"))
+				write(fileInfoLog, string("Норма разности сингулярных чисел полученных методом divide-and-conquer и командой svd : ", normDifference, "\n"))
+				close(fileInfoLog)
 
-			println("Норма разности сингулярных чисел полученных методом svdvals и методом divide-and-conquer : ",normDifference)
-	end
+				println("Норма разности сингулярных чисел полученных методом svdvals и методом divide-and-conquer : ",normDifference)
+			end
+		end
 	end
 end
