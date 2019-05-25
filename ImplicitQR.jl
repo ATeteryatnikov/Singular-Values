@@ -125,11 +125,11 @@ end
     - alphas - главная диагональ;
     - bettas - диагональ соседняя с главной;
     - prec - наибольшее отклонение по модулю нормы внедиагональных элементов от нуля;
-    - useShift - параметр использования сдвигов Уилкинсона;
     - numQRIterations - количество выполняемых итераций между выполнением проверок
     на зануление внедиагонального элемента;
+    - useShift - параметр использования сдвигов Уилкинсона.
 на наличие элемента из соседней с главной диагонали меньше чем prec; 
-* Возвращает два массива - главную и соседнюю с главной диагонали.
+* Возвращает собственные числа матрицы.
 """
 function RecursiveImplicitQR(
     alphas, bettas, prec, numQRIterations, useShift = false
@@ -163,7 +163,7 @@ function RecursiveImplicitQR(
                 break
             elseif (N == 2)
                 M = toDense(alpha, betta)
-                unsv = union(unsv, svdvals(M))
+                unsv = union(unsv, denseQRAlgorithm(M, prec))
                 break
             else
                 alpha, betta = ImplicitQRAlgorithm(alpha, betta, 
@@ -202,4 +202,21 @@ function RecursiveImplicitQR(
     RecursiveImplicitQRDivider(alphas, bettas, prec, numQRIterations, useShift)
     
     return unsv
+end
+
+"""
+Вычисление собственных чисел плотной матрицы QR-алгоритмом
+"""
+function denseQRAlgorithm(A, prec)
+    A = copy(A)
+    Q = Diagonal(ones(size(A)[1]))
+    r=1
+    while (r>prec)
+        (Q1, R) = qr(A)
+        A = R * Q1
+        #Q = Q1'*Q
+        r = norm(diag(A,-1))
+    end
+return diag(A)
+    #return [Q, A]
 end

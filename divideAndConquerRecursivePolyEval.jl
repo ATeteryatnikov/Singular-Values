@@ -152,7 +152,7 @@ function svdValsFinder(alpha, betta, lenBlock, prec = 1e-15, step = "")
     len = length(alpha)
     #println("step: ",step)
     if (len <= lenBlock)
-        return RecursiveImplicitQR(copy(alpha), copy(betta), prec, 200)
+        return RecursiveImplicitQR(copy(alpha), copy(betta), prec, 50, true)
         #matr = toDense(alpha, betta)
         #return denseQRAlgorithm(matr, prec)
     else

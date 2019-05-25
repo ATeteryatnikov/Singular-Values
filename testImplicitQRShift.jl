@@ -10,24 +10,24 @@ include("src/Matrices.jl")
 using GenericSVD
 using DelimitedFiles
 # размерность СЛАУ Годунова
-startDim = 100
-stepDim = 200
-endDim = 300
+startDim = 50
+stepDim = 50
+endDim = 50
 # величина мантиссы BigFloat
 startMantissa = 100
 stepMantissa = 50
-endMantissa = 700
+endMantissa = 100
 # Пороговое значение зануления внедиагональных элементов
 startPrecision = 40
 stepPrecision = 40
-endPrecision = 80
+endPrecision = 40
 # Количество итераций неявного QR-алгоритма между проведением зануления внедиагональных элементов
 startNumIteration = 200
 stepNumIteration = 200
 endNumIteration = 200
 
 # Директория с результатами теста
-resultFolderName = "resultImplicitQRShift"
+resultFolderName = "resultImplicitQRShiftTest"
 
 # Создаем директорию в каталоге с программой с названием resultFolderName
 try
@@ -57,7 +57,6 @@ for n in startDim:stepDim:endDim
 				println("Расчет implQR")
 				implQRVals, implQRTimer = @timed RecursiveImplicitQR(
 					copy(alphas), copy(bettas), big(1)/big(10)^(prec), numIteration, true)
-				implQRVals = BigFloat.(implQRVals[1])
 				println("Расчет implQR окончен ",implQRTimer," сек.")
 
 				difference = sort(originVals,rev=true) - sort(abs.(implQRVals),rev=true)
