@@ -6,17 +6,17 @@ availableColors = ["red","blue", "green", "brown", "purple"]
 # параметры указывают, какие файлы попадают в выборку
 dim = "100"
 mantissa = "*"
+numIterations = "200"
 prec="1e-80"
-lenBlock="50"
 
 # Название графика в легенде	
 #label = string("dim=", dim, " mantissa=", mantissa, " rep=", rep)
-label = string("dim=", dim, " mantissa=", mantissa, " bisectionPrec=", prec, " lenBlock=", lenBlock)
+label = string("useShift=true dim=", dim, " numIterations=", numIterations, " prec=", prec)
 color = rand(availableColors)
-dirName = "resultDivideAndConquerExperimental"
-createResultsBatPath = string(pwd(), "\\", "createDACResults.bat")
+dirName = "resultImplicitQRShift"
+createResultsBatPath = string(pwd(), "\\", "createResults.bat")
 createResultsfilesPath = string(pwd(), "\\", dirName)
-run(`cmd /c $createResultsBatPath $dim $mantissa $prec $lenBlock $createResultsfilesPath`)
+run(`cmd /c $createResultsBatPath $dim $mantissa $prec $numIterations $createResultsfilesPath`)
 
 # keyName определяет, какой параметр откладывается на ось абсцисс
 keyName = "mantissa"

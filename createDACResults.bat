@@ -8,7 +8,7 @@ echo %pathResults%
 set value=NormDiff
 echo Agregate values for %value%*_dim_%dim%*_mantissa_%mantissa%*_bisectionPrec_%prec%*__lenBlock_%lenBlock%*
 del "%pathResults%\graphicPoints.txt" 
-for %%a in ("%pathResults%\%value%*_dim_%dim%*_mantissa_%mantissa%*_bisectionPrec_%prec%*_lenBlock_%numIterationlenBlock%*") do (
+for %%a in ("%pathResults%\%value%*_dim_%dim%*_mantissa_%mantissa%*_bisectionPrec_%prec%*_lenBlock_%lenBlock%*") do (
 echo %%a
 type "%%a"
 echo. 

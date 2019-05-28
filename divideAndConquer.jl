@@ -1,36 +1,45 @@
-include("src/LogGenerator.jl")
-include("lanczos.jl")
 include("src/Matrices.jl")     
 include("implicitQR.jl")     
 
 const MIN_AVAILABLE_MARIX_SIZE = 6
-
+# максимальная размерность матрицы при которой собственные числа 
+# считаются неявным QR-алгоритмом.
 global minMatrixSize
+# критерий остановки метода бисекции, наибольшее отклонение 
+# значения характеристического полинома от нуля, при непревышении которого, 
+# метод бисекции завершает работу.
 global prec
+# критерий остановки метода бисекции, 
+# Максимальное количество делений пополам.
 global limit
 
 """
 Запускает алгоритм divide-and-conquer реализованный по статье:
 "V. Rokhlin
-A fast divide-and-conquer algorithm for computing the spectra of real symmetric tridiagonal matrices".
+A fast divide-and-conquer algorithm for computing the spectra
+of real symmetric tridiagonal matrices".
 
 * Функция возвращает собственные числа поданной матрицы;
 * Функция принимает:
 	- alphas - главная диагональ;
 	- bettas - диагональ соседняя с главной;
-	- precB - критерий остановки метода бисекций, наибольшее отклонение характерстического полинома от нуля;
-	- limitB - критерий остановки метода бисекций, наибольшее количество делений пополам;
-	- minLength - минимальный размер матрицы при котором происходит разделение матрицы иначе
-расчет собственных чисел производится неявным QR-алгоритмом.
+	- precB - критерий остановки метода бисекций, наибольшее отклонение
+	характерстического полинома от нуля;
+	- limitB - критерий остановки метода бисекций, наибольшее количество
+	делений пополам;
+	- minimumMatrixSize - минимальный размер матрицы при котором происходит 
+	разделение матрицы иначе расчет собственных чисел производится 
+	неявным QR-алгоритмом.
 """
-function divideAndConquer(alphas::AbstractArray, bettas::AbstractArray,
-							precB, limitB, minLength)
+function divideAndConquer(alphas::AbstractArray, 
+	bettas::AbstractArray, precB, limitB, minimumMatrixSize)
 	
-	if (minLength < MIN_AVAILABLE_MARIX_SIZE)
-		throw("Ошибка! Допустимый минимальный размер матрицы должен быть не меньше '6'!")
+	if (minimumMatrixSize < MIN_AVAILABLE_MARIX_SIZE)
+		throw("Ошибка! Допустимый минимальный размер матрицы
+			должен быть не меньше '6'!")
 	end
 
-	global minMatrixSize = minLength
+	global minMatrixSize = minimumMatrixSize
 	global prec = precB
 	global limit = limitB
 	
@@ -66,7 +75,8 @@ function denseQRAlgorithm(A, prec)
 end
 
 """
-Разделяет трехдиагональную матрицу в позиции [k,k] на две дочерние T*0 и T*1 
+Разделяет трехдиагональную матрицу в позиции [k,k] 
+на две дочерние T*0 и T*1 
 
 * Функция возвращает хэш-таблицу c элементом bettas[k] и 
 с наборами сингулярных чисел подматриц с кодами:
@@ -109,7 +119,8 @@ end
 по полученным наборам, через matrixPartsEvaluator, вычисляет 
 собственные числа поданной на вход матрицы и её частей (T, S, R, Q).
 
-* возвращает хэш-таблицу с наборами собственных чисел частей матрицы на уровне binaryCode с кодами:
+* возвращает хэш-таблицу с наборами собственных чисел частей матрицы
+на уровне binaryCode с кодами:
  - T*binaryCode;
  - S*binaryCode;
  - R*binaryCode;
@@ -119,7 +130,16 @@ end
 	- bettas - диагональ соседняя с главной;
 	- binaryCode - бинарный код;
 """
-function matrixPartsSVFinder(alphas::AbstractArray, bettas::AbstractArray, binaryCode)
+function matrixPartsSVFinder(
+	alphas::AbstractArray, bettas::AbstractArray, binaryCode)
+
+	#spsvd = (a, b)->denseQRAlgorithm(toDense(a, b), prec)
+	# Метод расчета собственных чисел для матриц меньше minMatrixSize.
+	# Могут возникать отрицательные собственные числа 
+	# в ходе разделения матриц,
+	# поэтому в этом случае svdvals не подходит.
+	spsvd = (a, b)->RecursiveImplicitQR(copy(a), copy(b), prec, 200)
+
 	dict = Dict()
 	if (length(alphas)==1)
 		push!(dict, "T" * binaryCode => spsvd(alphas, bettas))
@@ -129,15 +149,15 @@ function matrixPartsSVFinder(alphas::AbstractArray, bettas::AbstractArray, binar
 	len = length(alphas)
 	println("type: " * binaryCode)
 	if (len < minMatrixSize)
-		#spsvd = (a, b)->denseQRAlgorithm(toDense(a, b), prec)
-		# Метод расчета собственных чисел для матриц меньше minMatrixSize
-		# Могут возникать отрицательные собственные числа в ходе разделения матриц
-		spsvd = (a, b)->RecursiveImplicitQR(copy(a), copy(b), prec, 200)
-		
-		push!(dict, "T" * binaryCode => spsvd(alphas, bettas))
-		push!(dict, "S" * binaryCode => spsvd(alphas[1:end - 1], bettas[1:end - 1]))
-		push!(dict, "R" * binaryCode => spsvd(alphas[2:end], bettas[2:end]))
-		push!(dict, "Q" * binaryCode => spsvd(alphas[2:end - 1], bettas[2:end - 1]))
+	
+		push!(dict, "T" * binaryCode => 
+			spsvd(alphas, bettas))
+		push!(dict, "S" * binaryCode => 
+			spsvd(alphas[1:end - 1], bettas[1:end - 1]))
+		push!(dict, "R" * binaryCode => 
+			spsvd(alphas[2:end], bettas[2:end]))
+		push!(dict, "Q" * binaryCode => 
+			spsvd(alphas[2:end - 1], bettas[2:end - 1]))
 		
 		return dict
 	end
@@ -150,14 +170,17 @@ function matrixPartsSVFinder(alphas::AbstractArray, bettas::AbstractArray, binar
 end
 
 """
-Вычисляет собственные числа частей матрицы (T, S, R, Q) на уровне binaryCode.
+Вычисляет собственные числа частей матрицы 
+(T, S, R, Q) на уровне binaryCode.
 
-* Функция принимает хэш-таблицу с наборами собственных чисел подматриц с кодами:
-T*binaryCode*0, T*binaryCode*0,
-S*binaryCode*0, S*binaryCode*1,
-R*binaryCode*0, R*binaryCode*1,
-Q*binaryCode*0, Q*binaryCode*1.
-* Функция возвращает хэш-таблицу с наборами собственных чисел частей матрицы на уровне binaryCode с кодами:
+* Функция принимает хэш-таблицу с 
+наборами собственных чисел подматриц с кодами:
+    T*binaryCode*0, T*binaryCode*0,
+    S*binaryCode*0, S*binaryCode*1,
+    R*binaryCode*0, R*binaryCode*1,
+    Q*binaryCode*0, Q*binaryCode*1.
+* Функция возвращает хэш-таблицу с наборами собственных чисел 
+частей матрицы на уровне binaryCode с кодами:
  - T*binaryCode;
  - S*binaryCode;
  - R*binaryCode;
@@ -168,10 +191,11 @@ function matrixPartsEvaluator(submatrixDict, binaryCode)
 	bk = abs(submatrixDict["b"])
 
     # polyEval - функция вычисления значения полинома в точке, 
-    # как произведения разностей собственных чисел и указанного x.
-    # Функция принимает точку x и type - строка служащая ключем для хэш-таблицы,
-    # если значение в хэш-таблицы не найдено - возвращает единицу т.к.
-    # считаем, что значение характерстического полинома пустой матрицы единица
+    # как произведения разностей собственных чисел c указанным x.
+    # Функция принимает точку x и type - строка служащая ключем 
+    # для хэш-таблицы, если значение в хэш-таблицы не найдено - 
+    # возвращает единицу т.к. считаем, что значение характерстического
+    # полинома пустой матрицы равно единице.
 	function polyEval(x, type)
 		if (haskey(submatrixDict, type))
 			return prod(submatrixDict[type] .- x)
@@ -179,13 +203,32 @@ function matrixPartsEvaluator(submatrixDict, binaryCode)
 			return 1
 		end
 	end
-	evaluator = (x, X1, X2, X3, X4)->
-		polyEval(x, X1) * polyEval(x, X2) + bk * (polyEval(x, X1) * polyEval(x, X4) + polyEval(x, X2) * polyEval(x, X3))
+	evaluator = (x, X1, X2, X3, X4) -> (
+		polyEval(x, X1) * polyEval(x, X2) + 
+		bk * (polyEval(x, X1) * polyEval(x, X4) + 
+		polyEval(x, X2) * polyEval(x, X3))
+		)
 
-	Tevaluator = (x)->evaluator(x, "T" * binaryCode * "0", "T" * binaryCode * "1", "S" * binaryCode * "0", "R" * binaryCode * "1")
-	Sevaluator = (x)->evaluator(x, "T" * binaryCode * "0", "S" * binaryCode * "1", "S" * binaryCode * "0", "Q" * binaryCode * "1")
-	Revaluator = (x)->evaluator(x, "R" * binaryCode * "0", "T" * binaryCode * "1", "Q" * binaryCode * "0", "R" * binaryCode * "1")
-	Qevaluator = (x)->evaluator(x, "R" * binaryCode * "0", "S" * binaryCode * "1", "Q" * binaryCode * "0", "Q" * binaryCode * "1")
+	Tevaluator = (x)->evaluator(x, 
+		"T" * binaryCode * "0", 
+		"T" * binaryCode * "1", 
+		"S" * binaryCode * "0", 
+		"R" * binaryCode * "1")
+	Sevaluator = (x)->evaluator(x, 
+		"T" * binaryCode * "0", 
+		"S" * binaryCode * "1", 
+		"S" * binaryCode * "0", 
+		"Q" * binaryCode * "1")
+	Revaluator = (x)->evaluator(x, 
+		"R" * binaryCode * "0", 
+		"T" * binaryCode * "1", 
+		"Q" * binaryCode * "0", 
+		"R" * binaryCode * "1")
+	Qevaluator = (x)->evaluator(x, 
+		"R" * binaryCode * "0", 
+		"S" * binaryCode * "1", 
+		"Q" * binaryCode * "0", 
+		"Q" * binaryCode * "1")
 	
 	dict = Dict()
 	
@@ -197,70 +240,97 @@ function matrixPartsEvaluator(submatrixDict, binaryCode)
 	if (binaryCode == "")
 		# evaluate only "T" matrix
 	elseif (binaryCode == "0")
-		singValsS = bisectBetween(submatrixDict["T" * binaryCode * "0"], submatrixDict["S" * binaryCode * "1"], bk, Sevaluator)
+		singValsS = findEigenvalsBetween(
+			submatrixDict["T" * binaryCode * "0"],
+			submatrixDict["S" * binaryCode * "1"], 
+			bk, Sevaluator)
 		push!(dict, "S" * binaryCode => singValsS)
 	elseif (binaryCode == "1")
-		singValsR = bisectBetween(submatrixDict["R" * binaryCode * "0"], submatrixDict["T" * binaryCode * "1"], bk, Revaluator)
+		singValsR = findEigenvalsBetween(
+			submatrixDict["R" * binaryCode * "0"], 
+			submatrixDict["T" * binaryCode * "1"], 
+			bk, Revaluator)
 		push!(dict, "R" * binaryCode => singValsR)
 	else
 
 		if (hasOne && hasZero)
-			singValsQ = bisectBetween(submatrixDict["R" * binaryCode * "0"], submatrixDict["S" * binaryCode * "1"], bk, Qevaluator)
+			singValsQ = findEigenvalsBetween(
+				submatrixDict["R" * binaryCode * "0"], 
+				submatrixDict["S" * binaryCode * "1"], 
+				bk, Qevaluator)
 			push!(dict, "Q" * binaryCode => singValsQ)
 		end
 		if (hasOne)
-			singValsR = bisectBetween(submatrixDict["R" * binaryCode * "0"], submatrixDict["T" * binaryCode * "1"], bk, Revaluator)
+			singValsR = findEigenvalsBetween(
+				submatrixDict["R" * binaryCode * "0"], 
+				submatrixDict["T" * binaryCode * "1"], 
+				bk, Revaluator)
 			push!(dict, "R" * binaryCode => singValsR)
 		end
 		if (hasZero)
-			singValsS = bisectBetween(submatrixDict["T" * binaryCode * "0"], submatrixDict["S" * binaryCode * "1"], bk, Sevaluator)
+			singValsS = findEigenvalsBetween(
+				submatrixDict["T" * binaryCode * "0"], 
+				submatrixDict["S" * binaryCode * "1"], 
+				bk, Sevaluator)
 			push!(dict, "S" * binaryCode => singValsS)
 		end
 	end
-	singValsT = bisectBetween(submatrixDict["T" * binaryCode * "0"], submatrixDict["T" * binaryCode * "1"], bk, Tevaluator)
+	singValsT = findEigenvalsBetween(
+		submatrixDict["T" * binaryCode * "0"],
+		submatrixDict["T" * binaryCode * "1"], 
+		bk, Tevaluator)
 	push!(dict, "T" * binaryCode => singValsT)
 	
 	return dict
 end
 
 """ 
-Поиск собственных чисел родительской матрицы в интервалах между собственными числами её дочерних матриц методом бисекций.
+Поиск собственных чисел родительской матрицы в интервалах между 
+собственными числами её дочерних матриц методом бисекций.
 
 * Функция возвращает собственные числа родительской матрицы;
 * Функция принимает:
 	- eigvals1 - собственные числа первой матрицы;
 	- eigvals2 - собственные числа второй матрицы;
-	- bk - внедиагональный зануляемый при разделении родителькой матрицы элемент;
-	- evaluator - функция вычисляющая значение характерстического полинома.
+	- bk - внедиагональный зануляемый при разделении 
+	родителькой матрицы элемент;
+	- evaluator - анонимная функция вычисляющая значение
+	характерстического полинома.
 """
-function bisectBetween(eigvals1, eigvals2, bk, evaluator::Function)
+function findEigenvalsBetween(
+	eigvals1, eigvals2, bk, evaluator::Function)
+
 	eigVals = []
-	unionSV = sort(vcat(eigvals1, eigvals2))
+	unionSV = sort(vcat(eigvals1, eigvals2), rev=true)
 	len = length(unionSV)
+	push!(eigVals, 
+		bisection(evaluator, unionSV[1] + 2*bk, unionSV[1])
+		)
 	for i in 1:1:len - 1
-		push!(eigVals, bisection(evaluator, unionSV[i], unionSV[i + 1], prec, limit))
+		push!(eigVals, 
+			bisection(evaluator, unionSV[i], unionSV[i + 1])
+			)
 	end
-	push!(eigVals, bisection(evaluator, unionSV[len], unionSV[len] + 2 * bk, prec, limit))
 
 	return eigVals
 end
 
 """
-Вычисление корня характеристического полинома методом половинного 
+Вычисление корня поданой функции rootFunc методом половинного 
 деления на интервале.
 
 * Функция возвращает корень характеристического полинома матрицы.
 * Функция принимает:
-	- rootFunc - функция вычисляющая значение характерстического полинома;
-	- a, b - точки начала и конца интервала в котором происходит поиск корня;
-	- prec - критерий остановки метода бисекций, наибольшее отклонение характерстического полинома от нуля;
-	- limit - критерий остановки метода бисекций, наибольшее количество делений пополам.
+	- rootFunc - функция вычисляющая значение характерстического
+	полинома;
+	- a, b - точки начала и конца интервала в котором происходит
+	поиск корня;
 """
-function bisection(rootFunc::Function, a, b, prec, limit)
+function bisection(rootFunc::Function, a, b)
 	rc = 0
     c = 0
     ra = 0
-    rb = 0
+    rb = 
     a_changed = true
     b_changed = true
     k = 1

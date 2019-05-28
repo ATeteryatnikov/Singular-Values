@@ -1,7 +1,7 @@
-# Алгоритм divide-and-conquer, вычисление значения полинома производится рекурсивно для каждой точки
+# Алгоритм divide-and-conquer, вычисление значения полинома производится 
+# рекурсивно для каждой точки через детерминант.
 # "V. Rokhlin, A fast divide-and-conquer algorithm 
 # for computing the spectra of real symmetric tridiagonal matrices"
-include("src/LogGenerator.jl")
 include("lanczos.jl")
 include("src/Matrices.jl")     
 include("implicitQR.jl")

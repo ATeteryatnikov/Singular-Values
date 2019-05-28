@@ -9,9 +9,9 @@ using GenericLinearAlgebra
 using DelimitedFiles
 
 # размерность СЛАУ Годунова
-startDim = 50
-stepDim = 50
-endDim = 50
+startDim = 300
+stepDim = 200
+endDim = 300
 # величина мантиссы BigFloat
 startMantissa = 100
 stepMantissa = 100
@@ -19,8 +19,8 @@ endMantissa = 100
 # Наибольшее отклонение характеристического полинома от нуля в методе бисекций.
 # Если значение полинома меньше заданного числа,
 # считаем, что корень найден;
-startBisectionPrec = 80
-stepBisectionPrec = 80
+startBisectionPrec = 40
+stepBisectionPrec = 40
 endBisectionPrec = 80
 # максимальная размерность матриц в рекурсивном разделении матриц, 
 # при которой расчет значения характеристического полинома происходит через
@@ -31,7 +31,7 @@ endLenBlock = 6
 
 
 # Директория с результатами теста
-resultFolderName = "resultDivideAndConquerExperimentalMod2"
+resultFolderName = "resultDivideAndConquerExperimental"
 
 # Создаем директорию в каталоге с программой с названием resultFolderName
 try
@@ -72,13 +72,13 @@ for n in startDim:stepDim:endDim
 				# Сингулярные числа найденные методом divide-and-conquer
 				pathDiffSingVals = string(resultFolderName,"/SingVals_", fileNameParameters)
 				fileDifferenceSingVals = open(pathDiffSingVals, "w")
-				writedlm(fileDifferenceSingVals, split(string(DAC_svdvals)[10:end-1],","))
+				writedlm(fileDifferenceSingVals, split(string(big.(DAC_svdvals))[10:end-1],", "))
 				close(fileDifferenceSingVals)
 
 				# Разность сингулярных чисел полученных методом divide-and-conquer и командой svd.
 				pathDiffSingVals = string(resultFolderName,"/DiffSingVals_", fileNameParameters)
 				fileDifferenceSingVals = open(pathDiffSingVals, "w")
-				writedlm(fileDifferenceSingVals, split(string(difference)[10:end-1],","))
+				writedlm(fileDifferenceSingVals, split(string(difference)[10:end-1],", "))
 				close(fileDifferenceSingVals)
 
 				# Норма разности сингулярных чисел полученных методом divide-and-conquer и командой svd.
